@@ -1,0 +1,17 @@
+gradle
+.idea
+.gradle
+build
+docs/
+tmp/
+.vscode/
+
+.kotlin
+.idea
+.gradle
+gradle
+gradlew
+gradlew.bat
+
+.aider*
+gradlew*
