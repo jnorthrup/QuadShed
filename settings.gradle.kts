@@ -1,1 +1,1 @@
-rootProject.name = "trikeshed"
+rootProject.name = "quadshed"
