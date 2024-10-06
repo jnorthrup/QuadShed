@@ -33,11 +33,11 @@ enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Seri
     /**
      * 1 byte of storage, we'll test out 1/0 t/f  for now to account for known implementations which will bew sending us digits
      */
-    IoBoolean(1, {
-        when (it[0].lowercase()) {
-            't' ,'1'-> true
-            'f' ,'0'-> false
-            else -> throw IllegalArgumentException("invalid boolean: $it")
+    IoBoolean(1, { charSeries: Series<Char> ->
+        when (charSeries[0].lowercaseChar() ) {
+            't'  , '1' -> true
+            'f'  ,'0' -> false
+            else -> throw IllegalArgumentException("invalid boolean: $charSeries")
         }
     }) {
         override fun createEncoder(i: Int): (Any?) -> ByteArray = writeBool

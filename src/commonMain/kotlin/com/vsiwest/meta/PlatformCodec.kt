@@ -1,6 +1,5 @@
 package com.vsiwest.meta
 
-import kotlin.Byte.equals
 import kotlin.experimental.or
 import kotlin.jvm.JvmStatic
 
@@ -28,13 +27,12 @@ interface PlatformCodec {
         @JvmStatic
         val isNetworkEndian: Boolean by lazy {
             val i = 0x01020304
-            val b = Int.toByte()
-            b equals Int.toByte()
+            val b = i.toByte()
+            b == 0x01.toByte()
 
         }
-
-        @JvmStatic
-        val isLittleEndian: Boolean get() = !isNetworkEndian
+         @JvmStatic
+         val isLittleEndian: Boolean by lazy        { !isNetworkEndian }
 
         object currentPlatformCodec : PlatformCodec {
             override val readShort: (ByteArray) -> Short by lazy {
@@ -158,13 +156,14 @@ interface PlatformCodec {
                     }
                 }
             }
+
             //6 kotlin unsigned adapters below for the above 6
-            override val readUShort: (ByteArray) -> UShort ={it->readShort(it).toUShort()}
-            override val readUInt: (ByteArray) -> UInt ={it->readInt(it).toUInt()}
-            override val readULong: (ByteArray) -> ULong ={it->readLong(it).toULong()}
-            override val writeUShort: (UShort) -> ByteArray ={it->writeShort(it.toShort())}
-            override val writeUInt: (UInt) -> ByteArray ={it->writeInt(it.toInt())}
-            override val writeULong: (ULong) -> ByteArray ={it->writeLong(it.toLong())}
+            override val readUShort: (ByteArray) -> UShort = { it -> readShort(it).toUShort() }
+            override val readUInt: (ByteArray) -> UInt = { it -> readInt(it).toUInt() }
+            override val readULong: (ByteArray) -> ULong = { it -> readLong(it).toULong() }
+            override val writeUShort: (UShort) -> ByteArray = { it -> writeShort(it.toShort()) }
+            override val writeUInt: (UInt) -> ByteArray = { it -> writeInt(it.toInt()) }
+            override val writeULong: (ULong) -> ByteArray = { it -> writeLong(it.toLong()) }
 
         }
     }
