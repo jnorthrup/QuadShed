@@ -2,8 +2,12 @@
 
 package com.vsiwest.meta
 
+import borg.trikeshed.lib.asString
+import borg.trikeshed.lib.decodeToChars
+import com.vsiwest.CharSeries
 import com.vsiwest.Series
-import com.vsiwest.meta.PlatformCodec.*
+import com.vsiwest.encodeToByteArray
+import com.vsiwest.get
 import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec
 import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readInt
 import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readLong
@@ -16,18 +20,23 @@ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeULong
 import com.vsiwest.parseDouble
 import com.vsiwest.parseIsoDateTime
 import com.vsiwest.parseLong
-
+import com.vsiwest.toArray
+import com.vsiwest.toSeries
 import kotlinx.datetime.*
-import kotlin.collections.get
+import kotlin.text.encodeToByteArray
+
 interface TypeMemento {
     val networkSize: Int?
 }
 
 enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Series<Char>) -> Any) : TypeMemento {
+    /**
+     * 1 byte of storage, we'll test out 1/0 t/f  for now to account for known implementations which will bew sending us digits
+     */
     IoBoolean(1, {
-        when (it.b(0)) {
-            't' -> true
-            'f' -> false
+        when (it[0].lowercase()) {
+            't' ,'1'-> true
+            'f' ,'0'-> false
             else -> throw IllegalArgumentException("invalid boolean: $it")
         }
     }) {
@@ -126,7 +135,7 @@ enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Seri
 
         override fun createDecoder(size: Int): (ByteArray) -> Any? = readString
     },
-    IoCharSeries(null, ::CharSeries) {
+    IoCharSeries(null, fromChars = ::CharSeries) {
         override fun createEncoder(i: Int): (Any?) -> ByteArray = writeCharSeries
         override fun createDecoder(size: Int): (ByteArray) -> Any? = readCharSeries
     },
@@ -155,13 +164,13 @@ enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Seri
         val readString: (ByteArray) -> String = { value: ByteArray -> value.decodeToString() }
         val writeString: (Any?) -> ByteArray = { value: Any? -> (value as String).encodeToByteArray() }
 
-        val readBool: (ByteArray) -> Boolean = { value: ByteArray -> value[0] equals Int.toByte() }
+        val readBool: (ByteArray) -> Boolean = { value: ByteArray -> value[0] == 1.toByte() }
         val writeBool: (Any?) -> ByteArray =
-            { value: Any? -> ByteArray(1).apply { (IOMemento.Companion)[0] = if (value as Boolean) 1 else 0 } }
+            { value: Any? -> ByteArray(1).apply { this[0] = if (value as Boolean) 1 else 0 } }
         val readByte: (ByteArray) -> Byte = { value: ByteArray -> value[0] }
-        val writeByte: (Any?) -> ByteArray = { value: Any? -> ByteArray(1).apply { (IOMemento.Companion)[0] = value as Byte } }
+        val writeByte: (Any?) -> ByteArray = { value: Any? -> ByteArray(1).apply { this[0] = value as Byte } }
         val readUByte: (ByteArray) -> UByte = { value: ByteArray -> value[0].toUByte() }
         val writeUByte: (Any?) -> ByteArray =
-            { value: Any? -> ByteArray(1).apply { (IOMemento.Companion)[0] = (value as Byte) } }//take it on faith here
+            { value: Any? -> ByteArray(1).apply { this[0] = (value as Byte) } }//take it on faith here
     }
 }

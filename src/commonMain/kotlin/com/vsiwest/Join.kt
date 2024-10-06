@@ -44,8 +44,6 @@ interface Join<A, B> {
 inline fun <T> Twin(a: T, b: T): Twin<T> = a j b
 
 
-inline val <A> Join<A, *>.first: A get() = this.a
-inline val <B> Join<*, B>.second: B get() = this.b
 
 /**
  * exactly like "to" for "Join" but with a different (and shorter!) name
@@ -56,27 +54,27 @@ inline infix fun <A, B> A.j(b: B): Join<A, B> = Join(this, b)
 typealias Twin<T> = Join<T, T>
 
 
-fun Series<Char>.toArray(): CharArray = CharArray(a, b)
-
-fun Series<Boolean>.toArray(): BooleanArray = BooleanArray(size(), b)
-
-fun Series<Byte>.toArray(): ByteArray = ByteArray(a, b)
-
-fun Series<UByte>.toArray(): UByteArray = UByteArray(a, b)
-
-fun Series<Int>.toArray(): IntArray = IntArray(size(), b)
-
-fun Series<UInt>.toArray(): UIntArray = UIntArray(size(), b)
-
-fun Series<Long>.toArray(): LongArray = LongArray(size(), b)
-
-fun Series<ULong>.toArray(): ULongArray = ULongArray(size(), b)
-
-fun Series<Float>.toArray(): FloatArray = FloatArray(size(), ::get)
-
-fun Series<Double>.toArray(): DoubleArray = DoubleArray(size(), ::get)
-
-fun Series<Short>.toArray(): ShortArray = ShortArray(size(), ::get)
+//fun Series<Char>.toArray(): CharArray = CharArray(a, b)
+//
+//fun Series<Boolean>.toArray(): BooleanArray = BooleanArray(size(), b)
+//
+//fun Series<Byte>.toArray(): ByteArray = ByteArray(a, b)
+//
+//fun Series<UByte>.toArray(): UByteArray = UByteArray(a, b)
+//
+//fun Series<Int>.toArray(): IntArray = IntArray(size(), b)
+//
+//fun Series<UInt>.toArray(): UIntArray = UIntArray(size(), b)
+//
+//fun Series<Long>.toArray(): LongArray = LongArray(size(), b)
+//
+//fun Series<ULong>.toArray(): ULongArray = ULongArray(size(), b)
+//
+//fun Series<Float>.toArray(): FloatArray = FloatArray(size(), ::get)
+//
+//fun Series<Double>.toArray(): DoubleArray = DoubleArray(size(), ::get)
+//
+//fun Series<Short>.toArray(): ShortArray = ShortArray(size(), ::get)
 
 fun Series<UShort>.toArray(): UShortArray = UShortArray(size(), ::get)
 inline fun <reified T> Series<T>.toArray(): Array<T> = Array(size(), ::get)
@@ -94,6 +92,7 @@ fun FloatArray.toSeries(): Join<Int, (Int) -> Float> = size j ::get
 fun DoubleArray.toSeries(): Join<Int, (Int) -> Double> = size j ::get
 fun BooleanArray.toSeries(): Join<Int, (Int) -> Boolean> = size j ::get
 fun CharArray.toSeries(): Join<Int, (Int) -> Char> = size j ::get
+fun CharSequence.toSeries(): Join<Int, (Int) -> Char> = this.length j ::get
 fun UIntArray.toSeries(): Join<Int, (Int) -> UInt> = size j ::get
 
 

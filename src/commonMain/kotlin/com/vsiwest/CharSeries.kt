@@ -2,10 +2,9 @@
 
 package com.vsiwest
 
-import borg.trikeshed.lib.get
-import borg.trikeshed.lib.size
-import com.vsiwest.Series
+import borg.trikeshed.lib.asString
 import com.vsiwest.bitops.CZero.nz
+import kotlin.math.min
 
 
 /**
@@ -33,13 +32,13 @@ class CharSeries(
         }
 
     //string ctor
-    constructor(s: String) : this(s.toSeries())
+    constructor(s: String) : this((s as CharSequence).toSeries())
 
     /**remaining chars*/
     val rem: Int get() = limit - pos
 
     /** immutable max capacity of this buffer, alias for size*/
-    val cap: Int by  ::a
+    val cap: Int by ::a
 
     /** boolean indicating if there are remaining chars */
     val hasRemaining: Boolean get() = rem.nz
@@ -140,9 +139,7 @@ class CharSeries(
         return result
     }
 
-
-    fun asString(upto: Int = Int.MAX_VALUE): String =
-        ((limit - pos) j { x: Int -> this[x + pos] }).toArray().concatToString()
+    fun asString(upto: Int = Int.MAX_VALUE) = CharArray(min(a, upto), ::get ) `•` CharArray::concatToString
 
     override fun toString(): String {
         val take = asString().take(4)
@@ -276,13 +273,13 @@ operator fun Series<Char>.div(delim: Char): Series<Series<Char>> { //lazy split
      */
     val iarr: IntArray = intList.toIntArray()
 
-    return iarr α { x:Int ->
-        val p = if (x == 0) 0 else iarr[ x.dec() ].inc() //start of next
+    return iarr α { v: Int ->
+        val p = if (v == 0) 0 else iarr[v.dec()].inc() //start of next
         val l = //is x last index?
-            if (x == iarr.lastIndex)
+            if (v == iarr.lastIndex)
                 size()
             else
-                iarr[x].dec()
+                iarr[v].dec()
         this[p until l]
     }
 }

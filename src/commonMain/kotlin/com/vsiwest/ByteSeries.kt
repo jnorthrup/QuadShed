@@ -4,6 +4,7 @@ import com.vsiwest.Join
 import com.vsiwest.Series
 import com.vsiwest.bitops.CZero.nz
 import com.vsiwest.bitops.reversed
+import com.vsiwest.encodeToByteArray
 import com.vsiwest.get
 import com.vsiwest.j
 import com.vsiwest.size
@@ -18,7 +19,7 @@ fun Series<Byte>.decodeUtf8(charArray: CharArray? = null): Series<Char> {
     return charArray?.let { it: CharArray ->
         decodeDirtyUtf8(it)
     } ?: if (isDirtyUTF8()) decodeDirtyUtf8() else {
-        val join: Join<Int, (Int) -> Char> = a j b  α (Byte::toInt `•` Int::toChar)
+        val join: Join<Int, (Int) -> Char> = a j b α (Byte::toInt `•` Int::toChar)
         (join)
     }
 }
@@ -49,7 +50,7 @@ fun Series<Byte>.decodeDirtyUtf8(charArray: CharArray = CharArray(size())): Seri
     return w j charArray::get
 }
 
-fun Series<Byte>.asString(): String = toArray().decodeToString()
+
 
 /**
  * byte based spiritual successor to ByteBuffer for parsing
@@ -75,7 +76,7 @@ class ByteSeries(
         }
 
     //string ctor
-    constructor(s: String) : this(s.toSeries().encodeToByteArray().toSeries())
+    constructor(s: String) : this(s.encodeToByteArray().toSeries())
 
     constructor(buf: ByteArray, pos: Int = 0, limit: Int = buf.size) : this(
         limit j buf::get, pos
@@ -85,7 +86,7 @@ class ByteSeries(
     val rem: Int get() = limit - pos
 
     /** immutable max capacity of this buffer, alias for size*/
-    val cap: Int get()= a
+    val cap: Int get() = a
 
     /** boolean indicating if there are remaining chars */
     val hasRemaining: Boolean get() = rem.nz
@@ -293,21 +294,23 @@ fun Series<Byte>.isDirtyUTF8(): Boolean {
 }
 
 //opposite method to build a charSeries from byte[]
-fun ByteArray.decodeToChars():  Series<Char> = toSeries().decodeUtf8(/*CharArray(size)*/)
+fun ByteArray.decodeToChars(): Series<Char> = toSeries().decodeUtf8(/*CharArray(size)*/)
 
-fun  Series<Char>.asString(upto: Int = Int.MAX_VALUE): String = this. take(upto).encodeToByteArray().decodeToString()
+fun Series<Char>.asString(upto: Int = Int.MAX_VALUE): String = this.take(upto).encodeToByteArray().decodeToString()
 
 
 fun ByteSeries.decodeToString() = decodeUtf8().asString()
 
 fun Series<Byte>.startsWith(s: String): Boolean {
-    val join = s.encodeToByteArray() .toSeries()
-    return join.size() <= this.size() && join.`⏵`.zip(this). all { it.first == it.second }
+    val join = s.encodeToByteArray().toSeries()
+    return join.size() <= this.size() && join.`⏵`.zip(this.`⏵`).all { it.first == it.second }
 }
 
 fun Series<Byte>.endsWith(s: String): Boolean {
-    val join = s.encodeToByteArray() α { it }
-    return join.size() <= size() && join.zip(this.reversed()).`▶`.all { it.first == it.second }
+    val join = s.encodeToByteArray().toSeries()
+    return join.size() <= size() && join.`⏵`.zip(this.reversed().`⏵`).all {
+        it.run { first == second }
+    }
 }
 
 operator fun Series<Byte>.div(delim: Byte): Series<Series<Byte>> { //lazy split
@@ -319,13 +322,11 @@ operator fun Series<Byte>.div(delim: Byte): Series<Series<Byte>> { //lazy split
      */
     val iarr: IntArray = intList.toIntArray()
 
-    return iarr α { x ->
-        val p = if (x == 0) 0 else iarr[x.dec()].inc() //start of next
-        val l = //is x last index?
-            if (x == iarr.lastIndex) size()
-            else iarr[x].dec()
+    return iarr α { v: Int ->
+        val p = if (v == 0) 0 else iarr[v.dec()].inc() //start of next
+        val l = //is v last index?
+            if (v == iarr.lastIndex) size()
+            else iarr[v].dec()
         this[p until l]
     }
-
-
 }

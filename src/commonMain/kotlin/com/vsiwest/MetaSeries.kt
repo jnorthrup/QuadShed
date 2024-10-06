@@ -3,18 +3,19 @@
 package com.vsiwest
 
 import com.vsiwest.bitops.CZero.bool
+import com.vsiwest.bitops.CZero.nz
 import kotlinx.datetime.LocalDateTime
 import kotlin.math.pow
 
 typealias MetaSeries<K, V> = Join<K, (K) -> V>
 
-/** save for inducting old code */
 //val <K : Comparable<K>, V> MetaSeries<K, V>.size get() = size()
 
 
-fun <K : Comparable<K>, V> MetaSeries<K, V>.size() = a
-
 operator fun <K : Comparable<K>, V> MetaSeries<K, V>.get(x: K): V = b(x)
+
+
+fun <K : Comparable<K>, V> MetaSeries<K, V>.size() = a
 operator fun <K : Comparable<K>, V> MetaSeries<K, V>.get(r: ClosedRange<K>) = a j { i: K -> b(a.duckPlus(r.start, i)) }
 
 /** α
@@ -232,23 +233,21 @@ fun <K : Comparable<K>, V> MetaSeries<K, V>.drop(i: K) = a.duckMinus(a, i) j { i
 fun <K : Comparable<K>, V> MetaSeries<K, V>.dropLast(i: K) = a.duckMinus(a, i) j b
 
 
-/**
- *
- */
-fun <  K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> {
-    return when (a) {
-        is Boolean -> { it: Boolean -> it.bool }
-        is Byte -> Byte::toInt j Int::toByte //Byte::toInt j Int::toByte
-        is Short -> Short::toInt j Int::toShort
-        is Char -> Char::code j Int::toChar
-        is Long -> Long::toInt j Int::toLong
-        is UByte -> UByte::toInt j Int::toUByte
-        is UShort -> UShort::toInt j Int::toUShort
-        is UInt -> UInt::toInt j Int::toUInt
-        is ULong -> ULong::toInt j Int::toULong
+fun <K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> =
+     (when (a) {
+        is Boolean ->  ({ it: Boolean -> it.bool }j  { it: Int -> it.nz as Boolean })as Join<((K) -> Int), ((Int) -> K)>
+        is Byte ->  (Byte::toInt j Int::toByte) as Join<((K) -> Int), ((Int) -> K)>
+        is Short ->  (Short::toInt j Int::toShort) as Join<((K) -> Int), ((Int) -> K)>
+        is Char ->  (Char::code j Int::toChar) as Join<((K) -> Int), ((Int) -> K)>
+        is Long ->  (Long::toInt j Int::toLong) as Join<((K) -> Int), ((Int) -> K)>
+        is UByte ->  (UByte::toInt j Int::toUByte) as Join<((K) -> Int), ((Int) -> K)>
+        is UShort ->  (UShort::toInt j Int::toUShort) as Join<((K) -> Int), ((Int) -> K)>
+        is UInt ->  (UInt::toInt j Int::toUInt) as Join<((K) -> Int), ((Int) -> K)>
+        is ULong ->  (ULong::toInt j Int::toULong) as Join<((K) -> Int), ((Int) -> K)>
         else -> throw IllegalArgumentException("Unsupported type")
-    }.let { (ti: ((K) -> Int), fi: (Int) -> K) ->
-        ti(a) j { i: Int -> b(fi(i)) }
+    }.let { thing ->
 
-    }
-}
+         val (ti: (K) -> Int, fi: (Int) -> K) = thing
+
+         ti(a) j { i: Int -> b(fi(i)) }
+    }   as  Series<V>)
