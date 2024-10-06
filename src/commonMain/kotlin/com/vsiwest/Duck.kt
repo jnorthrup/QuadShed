@@ -1,18 +1,24 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.vsiwest
 
-val <N : Number, K : Comparable<N>> MetaSeries<K, *>.xor: (K, K) -> K
-    get() = when (this.a) {
+import kotlin.experimental.xor
+
+val <N : Comparable<N>>  N.duckXor: (N, N) -> N
+    get()= when (this ) {
         is Int -> Int::xor
         is Long -> Long::xor
-        is Short -> ::xor
-        is Byte -> ::xor
+        is Short -> Short::xor
+        is Byte -> Byte::xor
         is UInt -> UInt::xor
         is ULong -> ULong::xor
         is UShort -> UShort::xor
         is UByte -> UByte::xor
-        else -> TODO("handle keys like $a")
-    } as (K, K) -> K
-val <N : Number, K : Comparable<N>> K.zero: K
+        else -> TODO("handle keys like $this")
+    } as (N, N) -> N
+
+
+val < N : Comparable<N>> N.duckZero: N
     get() = when (this) {
         is Int -> 0
         is Long -> 0L
@@ -23,8 +29,8 @@ val <N : Number, K : Comparable<N>> K.zero: K
         is UShort -> 0u.toUShort()
         is UByte -> 0u.toUByte()
         else -> TODO()
-    } as K
-val <N : Number, K : Comparable<N>>K.duckInc: (K) -> K
+    } as N
+val < N : Comparable<N  >>N.duckInc: (N) -> N
     get() =
         when (this) {
             is Int -> Int::inc
@@ -36,8 +42,9 @@ val <N : Number, K : Comparable<N>>K.duckInc: (K) -> K
             is UShort -> UShort::inc
             is UByte -> UByte::inc
             else -> TODO("poof")
-        } as (K) -> K
-val <N : Number, K : Comparable<N>>K.duckDec: (K) -> K
+        } as (N) -> N
+
+val < N : Comparable<N>>N.duckDec: (N) -> N
     get() =
         when (this) {
             is Int -> Int::dec
@@ -49,4 +56,32 @@ val <N : Number, K : Comparable<N>>K.duckDec: (K) -> K
             is UShort -> UShort::dec
             is UByte -> UByte::dec
             else -> TODO("poof")
-        } as (K) -> K
+        } as (N) -> N
+
+
+val <N : Comparable<N>> N.duckMinus: (N,N) -> N
+    get() = when (this) {
+        is Int -> {me:Int, them: Int -> (me - them.toInt()) }
+        is Long -> {me:Long, them: Long -> (me - them.toLong()) }
+        is Short -> { me:Short,them: Short -> (me - them.toShort()) }
+        is Byte -> {me:Byte, them: Byte -> (me - them.toByte()) }
+        is UInt -> {me:UInt, them: UInt -> (me - them.toUInt()) }
+        is ULong -> {me:ULong, them: ULong -> (me - them.toULong()) }
+        is UShort -> { me:UShort,them: UShort -> (me - them.toUShort()) }
+        is UByte -> {me:UByte, them: UByte -> (me - them.toUByte()) }
+        else -> throw IllegalArgumentException("Unsupported type ${this::class}")
+    } as (N,N) -> N
+
+
+val <N : Comparable<N>> N.duckPlus: (N,N) -> N get()= when (this) {
+    is Int -> {me:Int, them: Int -> (me + them.toInt()) }
+    is Long -> {me:Long, them: Long -> (me + them.toLong()) }
+    is Short -> { me:Short,them: Short -> (me + them.toShort()) }
+    is Byte -> {me:Byte, them: Byte -> (me + them.toByte()) }
+    is UInt -> {me:UInt, them: UInt -> (me + them.toUInt()) }
+    is ULong -> {me:ULong, them: ULong -> (me + them.toULong()) }
+    is UShort -> { me:UShort,them: UShort -> (me + them.toUShort()) }
+    is UByte -> {me:UByte, them: UByte -> (me + them.toUByte()) }
+    else -> throw IllegalArgumentException("Unsupported type ${this::class}")
+} as (N,N) -> N
+

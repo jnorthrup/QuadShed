@@ -1,4 +1,4 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST") @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package com.vsiwest
 
@@ -11,11 +11,9 @@ interface Join<A, B> {
     operator fun component1(): A = a
     operator fun component2(): B = b
 
+
     val pair: Pair<A, B>
         get() = Pair(a, b)
-
-    /** debugger hack only, violates all common sense */
-    val list: List<Any?> get() = (this as? Series<out Any?>)?.toList() ?: emptyList()
 
     companion object {
         //the Join factory method
@@ -58,30 +56,44 @@ inline infix fun <A, B> A.j(b: B): Join<A, B> = Join(this, b)
 typealias Twin<T> = Join<T, T>
 
 
-fun Series<Byte>.toArray(): ByteArray = ByteArray(a, b)
-
 fun Series<Char>.toArray(): CharArray = CharArray(a, b)
 
-fun Series<Int>.toArray(): IntArray = IntArray(size, b)
+fun Series<Boolean>.toArray(): BooleanArray = BooleanArray(size(), b)
 
-fun Series<Boolean>.toArray(): BooleanArray = BooleanArray(size, b)
+fun Series<Byte>.toArray(): ByteArray = ByteArray(a, b)
 
-fun Series<Long>.toArray(): LongArray = LongArray(size, b)
+fun Series<UByte>.toArray(): UByteArray = UByteArray(a, b)
 
-fun Series<Float>.toArray(): FloatArray = FloatArray(size, ::get)
+fun Series<Int>.toArray(): IntArray = IntArray(size(), b)
 
-fun Series<Double>.toArray(): DoubleArray = DoubleArray(size, ::get)
+fun Series<UInt>.toArray(): UIntArray = UIntArray(size(), b)
 
-fun Series<Short>.toArray(): ShortArray = ShortArray(size, ::get)
+fun Series<Long>.toArray(): LongArray = LongArray(size(), b)
 
-inline fun <reified T> Series<T>.toArray(): Array<T> = Array(size, ::get)
+fun Series<ULong>.toArray(): ULongArray = ULongArray(size(), b)
+
+fun Series<Float>.toArray(): FloatArray = FloatArray(size(), ::get)
+
+fun Series<Double>.toArray(): DoubleArray = DoubleArray(size(), ::get)
+
+fun Series<Short>.toArray(): ShortArray = ShortArray(size(), ::get)
+
+fun Series<UShort>.toArray(): UShortArray = UShortArray(size(), ::get)
+inline fun <reified T> Series<T>.toArray(): Array<T> = Array(size(), ::get)
 
 fun <T> Array<T>.toSeries(): Join<Int, (Int) -> T> = size j ::get
 
-
-
-
-
-
+fun IntArray.toSeries(): Join<Int, (Int) -> Int> = size j ::get
+fun LongArray.toSeries(): Join<Int, (Int) -> Long> = size j ::get
+fun ULongArray.toSeries(): Join<Int, (Int) -> ULong> = size j ::get
+fun ByteArray.toSeries(): Join<Int, (Int) -> Byte> = size j ::get
+fun UByteArray.toSeries(): Join<Int, (Int) -> UByte> = size j ::get
+fun ShortArray.toSeries(): Join<Int, (Int) -> Short> = size j ::get
+fun UShortArray.toSeries(): Join<Int, (Int) -> UShort> = size j ::get
+fun FloatArray.toSeries(): Join<Int, (Int) -> Float> = size j ::get
+fun DoubleArray.toSeries(): Join<Int, (Int) -> Double> = size j ::get
+fun BooleanArray.toSeries(): Join<Int, (Int) -> Boolean> = size j ::get
+fun CharArray.toSeries(): Join<Int, (Int) -> Char> = size j ::get
+fun UIntArray.toSeries(): Join<Int, (Int) -> UInt> = size j ::get
 
 
