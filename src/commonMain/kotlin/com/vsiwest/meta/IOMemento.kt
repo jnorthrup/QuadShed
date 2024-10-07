@@ -29,6 +29,30 @@ package com.vsiwest.meta
 interface TypeMemento {
     val networkSize: Int?
 }
+inline fun <reified V > V.isIntegral() = when (this) {
+    is Byte, is UByte, is Short, is UShort, is Char, is Int, is UInt, is Long, is ULong -> true
+    else -> false
+}
+
+inline fun <reified V : IOMemento> V.networkBits() = networkSize?.let { it * 8 }
+inline fun <reified V> V.networkBits(): Int = this.ioMemento().networkSize?.let { it * 8 } ?: -1
+
+inline fun <reified V> V.ioMemento(): IOMemento = when (this) {
+    is Byte -> IOMemento.IoByte
+    is UByte -> IOMemento.IoUByte
+    is Short -> IOMemento.IoShort
+    is UShort -> IOMemento.IoUShort
+    is Int -> IOMemento.IoInt
+    is UInt -> IOMemento.IoUInt
+    is Long -> IOMemento.IoLong
+    is ULong -> IOMemento.IoULong
+    is Float -> IOMemento.IoFloat
+    is Double -> IOMemento.IoDouble
+    is Boolean -> IOMemento.IoBoolean
+    is Instant -> IOMemento.IoInstant
+    is LocalDate -> IOMemento.IoLocalDate
+    else -> IOMemento.IoNothing
+}
 
 enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Series<Char>) -> Any) : TypeMemento {
     /**

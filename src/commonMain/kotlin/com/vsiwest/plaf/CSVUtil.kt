@@ -35,27 +35,7 @@ import kotlin.toUShort
  * a versatile range of two unsigned shorts stored as a 32 bit Int value as Inline class
  */
 @kotlin.jvm.JvmInline
-value class DelimitRange(val value: Int) : Twin<UShort>, ClosedRange<UShort> {
-    //emulates a pair of UShorts using 16 bits for two UShorts
-    override val a: UShort get() = (value ushr 16).toUShort()
-    override val b: UShort get() = (value and 0xFFFF).toUShort()
-
-    companion object {
-        fun of(a: UShort, b: UShort): DelimitRange = DelimitRange((a.toInt() shl 16) or b.toInt())
-    }
-
-    override val start: UShort
-        get() = a
-    override val endInclusive: UShort
-        get() = b.dec()
-
-    /**this range is end-exclusive, he UShort range end is inclusive. */
-    val asIntRange: IntRange
-        get() {
-            val endExclusive = b.toInt().inc()
-            return (a.toInt() until b.inc().toInt())
-        }
-}
+typealias   DelimitRange= Twin<UShort>
 
 
 /** forward scanner of commas, quotes, and newlines
@@ -76,8 +56,7 @@ object CSVUtil {
         end: Long = -1L,
         //this is 1 TypeDeduction per column, for one line. elsewhere, there should be a TypeDeduction holding maximum findings per file/column.
         lineEvidence: MutableList<TypeEvidence>? = null,
-    ) :Series<>
-    {
+    ): Series<> {
         var quote = false
         var doubleQuote = false
         var escape = false
@@ -104,7 +83,7 @@ object CSVUtil {
                 char == '\'' -> quote = !quote
                 char == '\\' -> escape = !escape
                 char == ',' -> if (!quote && !doubleQuote) {
-                    val element = DelimitRange.of(since.toUShort(), x.toUShort())
+                    val element = DelimitRange((since.toUShort().toInt() shl 16) or x.toUShort().toInt())
                     rlist.add(element)
 // these check out                    logDebug { "val${element.pair}: "+ CharSeries(file[ element.asIntRange ].decodeUtf8()).asString() }
                     lineEvidence?.apply {
@@ -117,7 +96,7 @@ object CSVUtil {
                 }
 
                 char == '\r' || char == '\n' || end == x.inc() -> {
-                    val element = DelimitRange.of(since.toUShort(), x.toUShort())
+                    val element = DelimitRange((since.toUShort().toInt() shl 16) or x.toUShort().toInt())
                     rlist.add(element)
                     lineEvidence?.apply {
 //                        logDebug { "bookend val${element.pair}: " + CharSeries(file[element.asIntRange].decodeUtf8()).asString() }
@@ -131,7 +110,7 @@ object CSVUtil {
             x++
         }
         assert(rlist.isNotEmpty())
-        return  (rlist.size) j { rlist[it].value }
+        return (rlist.size) j { rlist[it].value }
         // what happens specifically in the above code when we pass in a line with no cr/lf in the above code:
 
     }
@@ -201,7 +180,7 @@ object CSVUtil {
             val dstart = datazero1
             datazero1 += line.last().b.toLong()
 
-            if (line.a  != header.a  ) {
+            if (line.a != header.a) {
                 logDebug { "line.size: ${line.size()}" }
                 logDebug { "header.size: ${header.size()}" }
                 logDebug { "headerNames: ${headerNames.toList()}" }
@@ -222,7 +201,7 @@ object CSVUtil {
         val convertedSegmentLengths = conversionSegments?.right?.toArray()
         val convertedSegments = convertedSegmentLengths?.fold(mutableListOf<DelimitRange>()) { acc, length ->
             val last = acc.lastOrNull()?.b ?: 0.toUShort()
-            acc.add(DelimitRange.of(last, (last + length.toUInt()).toUShort()))
+            acc.add(DelimitRange((last.toInt() shl 16) or (last + length.toUInt()).toUShort().toInt()))
             acc
         }
 
@@ -247,7 +226,8 @@ object CSVUtil {
                 CharSeries(
                     lserr[delimitRange.first.toInt() until delimitRange.endInclusive.inc().toInt()].decodeUtf8()
                 ) j {
-                    val air = delimitRange.asIntRange
+                    val endExclusive = this@DelimitRange.b.toInt().inc()
+                    val air = (this@DelimitRange.a.toInt() until this@DelimitRange.b.inc().toInt())
                     RecordMeta(
                         headerNames[x],
                         IoCharSeries,
