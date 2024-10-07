@@ -2,28 +2,29 @@
 
 package com.vsiwest.meta
 
-import borg.trikeshed.lib.asString
-import borg.trikeshed.lib.decodeToChars
-import com.vsiwest.CharSeries
-import com.vsiwest.Series
-import com.vsiwest.encodeToByteArray
-import com.vsiwest.get
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readInt
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readLong
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readUInt
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readULong
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeInt
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeLong
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeUInt
-import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeULong
-import com.vsiwest.parseDouble
-import com.vsiwest.parseIsoDateTime
-import com.vsiwest.parseLong
-import com.vsiwest.toArray
-import com.vsiwest.toSeries
-import kotlinx.datetime.*
-import kotlin.text.encodeToByteArray
+
+ import com.vsiwest.CharSeries
+ import com.vsiwest.Series
+ import com.vsiwest.asString
+ import com.vsiwest.decodeToChars
+ import com.vsiwest.encodeToByteArray
+ import com.vsiwest.get
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readInt
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readLong
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readUInt
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readULong
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeInt
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeLong
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeUInt
+ import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeULong
+ import com.vsiwest.parseDouble
+ import com.vsiwest.parseIsoDateTime
+ import com.vsiwest.parseLong
+ import com.vsiwest.toArray
+ import com.vsiwest.toSeries
+ import kotlinx.datetime.*
+ import kotlin.text.encodeToByteArray
 
 interface TypeMemento {
     val networkSize: Int?
@@ -174,3 +175,5 @@ enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Seri
             { value: Any? -> ByteArray(1).apply { this[0] = (value as Byte) } }//take it on faith here
     }
 }
+
+

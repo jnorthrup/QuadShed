@@ -1,0 +1,19 @@
+package com.vsiwest.plaf
+
+
+import com.vsiwest.Join
+import com.vsiwest.Series
+import com.vsiwest.meta.IOMemento
+import com.vsiwest.meta.RecordMeta
+import com.vsiwest.α
+import com.vsiwest.`⏵`
+import kotlin.jvm.JvmOverloads
+
+class SimpleCursor @JvmOverloads constructor(
+    val scalars: Series<ColumnMeta>,
+    val data: Series<Series<Any>>,
+    val o: Series<RecordMeta> = scalars α {
+        (it as? RecordMeta) ?: RecordMeta(it.name, (it[0] as? IOMemento )?: IOMemento.IoString)
+    },
+    val c: Join <Int, (Int) -> RowVec> = data α { it.`⏵`.zip(o) },
+) : Cursor by c

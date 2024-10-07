@@ -1,19 +1,7 @@
-package borg.trikeshed.lib
+package com.vsiwest
 
-import com.vsiwest.Join
-import com.vsiwest.Series
 import com.vsiwest.bitops.CZero.nz
 import com.vsiwest.bitops.reversed
-import com.vsiwest.encodeToByteArray
-import com.vsiwest.get
-import com.vsiwest.j
-import com.vsiwest.size
-import com.vsiwest.take
-import com.vsiwest.toArray
-import com.vsiwest.toSeries
-import com.vsiwest.α
-import com.vsiwest.`•`
-import com.vsiwest.`⏵`
 
 fun Series<Byte>.decodeUtf8(charArray: CharArray? = null): Series<Char> {
     return charArray?.let { it: CharArray ->
@@ -24,11 +12,11 @@ fun Series<Byte>.decodeUtf8(charArray: CharArray? = null): Series<Char> {
     }
 }
 
-fun Series<Byte>.decodeDirtyUtf8(charArray: CharArray = CharArray(size())): Series<Char> {
+fun Series<Byte>.decodeDirtyUtf8(charArray: CharArray = CharArray(a)): Series<Char> {
     //does not use StringBuilder, but is faster than String(bytes, Charsets.UTF_8)
     var y = 0
     var w = 0
-    while (y < size() && w < charArray.size) {
+    while (y < a && w < charArray.size) {
         val c = this[y++].toInt()/* 0xxxxxxx */
         when (c shr 4) {
             in 0..7 -> charArray[w++] = c.toChar() // 0xxxxxxx
@@ -62,7 +50,7 @@ class ByteSeries(
     var pos: Int = 0,
 
     /** the limit accessor */
-    var limit: Int = buf.size(), //initialized to size
+    var limit: Int = buf.a, //initialized to size
 
     /** the mark accessor */
     var mark: Int = -1,
@@ -120,7 +108,7 @@ class ByteSeries(
     val clr: ByteSeries
         get() = apply {
             pos = 0
-            limit = size()
+            limit = this.a
             mark = -1
         }
 
@@ -168,9 +156,9 @@ class ByteSeries(
             pos != other.pos -> return false
             limit != other.limit -> return false
             mark != other.mark -> return false
-            size() != other.size() -> return false
+            this.a != other.a -> return false
             else -> {
-                for (i in 0 until size()) if (b(i) != other.b(i)) return false
+                for (i in 0 until this.a) if (b(i) != other.b(i)) return false
                 return true
             }
         }
@@ -181,7 +169,7 @@ class ByteSeries(
         var result = pos
         result = 31 * result + limit
         result = 31 * result + mark
-        result = 31 * result + size()
+        result = 31 * result + this.a
 //include cachecode
         result = 31 * result + cacheCode
         return result
@@ -252,7 +240,7 @@ class ByteSeries(
         while (hasRemaining) {
             if (get == lit[i]) {
                 i++
-                if (i == lit.size()) return true
+                if (i == lit.a) return true
             } else {
                 i = 0
             }
@@ -277,7 +265,7 @@ class ByteSeries(
 
 fun Series<Byte>.isDirtyUTF8(): Boolean {
     var dirty = false
-    val bsz = size()
+    val bsz = a
     //if thereis one more byte to test and the first byte is in the range of 110x xxxx
     //what shr 4 proves: 110x xxxx
     val barLen = bsz.dec()
@@ -303,19 +291,19 @@ fun ByteSeries.decodeToString() = decodeUtf8().asString()
 
 fun Series<Byte>.startsWith(s: String): Boolean {
     val join = s.encodeToByteArray().toSeries()
-    return join.size() <= this.size() && join.`⏵`.zip(this.`⏵`).all { it.first == it.second }
+    return join.a <= a && join.`⏵`.zip(this.`⏵`).all { it.first == it.second }
 }
 
 fun Series<Byte>.endsWith(s: String): Boolean {
     val join = s.encodeToByteArray().toSeries()
-    return join.size() <= size() && join.`⏵`.zip(this.reversed().`⏵`).all {
+    return join.a <= a && join.`⏵`.zip(this.reversed().`⏵`).all {
         it.run { first == second }
     }
 }
 
 operator fun Series<Byte>.div(delim: Byte): Series<Series<Byte>> { //lazy split
     val intList = mutableListOf<Int>()
-    for (x in 0 until size()) if (this[x] == delim) intList.add(x)
+    for (x in 0 until a) if (this[x] == delim) intList.add(x)
 
     /**
      * iarr is an index of delimitted endings of the ByteSeries.
@@ -325,7 +313,7 @@ operator fun Series<Byte>.div(delim: Byte): Series<Series<Byte>> { //lazy split
     return iarr α { v: Int ->
         val p = if (v == 0) 0 else iarr[v.dec()].inc() //start of next
         val l = //is v last index?
-            if (v == iarr.lastIndex) size()
+            if (v == iarr.lastIndex) a
             else iarr[v].dec()
         this[p until l]
     }

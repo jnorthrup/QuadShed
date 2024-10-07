@@ -41,14 +41,14 @@ interface Join<A, B> {
 
 
 //Twin factory method
-inline fun <T> Twin(a: T, b: T): Twin<T> = a j b
+inline fun <reified T> Twin(a: T, b: T): Twin<T> = a j b
 
 
 
 /**
  * exactly like "to" for "Join" but with a different (and shorter!) name
  */
-inline infix fun <A, B> A.j(b: B): Join<A, B> = Join(this, b)
+ infix fun <A, B> A.j(b: B): Join<A, B> = Join(this, b)
 
 
 typealias Twin<T> = Join<T, T>
@@ -76,8 +76,8 @@ typealias Twin<T> = Join<T, T>
 //
 //fun Series<Short>.toArray(): ShortArray = ShortArray(size(), ::get)
 
-fun Series<UShort>.toArray(): UShortArray = UShortArray(size(), ::get)
-inline fun <reified T> Series<T>.toArray(): Array<T> = Array(size(), ::get)
+fun Series<UShort>.toArray(): UShortArray = UShortArray(a, ::get)
+inline fun <reified T> Series<T>.toArray(): Array<T> = Array(a, ::get)
 
 fun <T> Array<T>.toSeries(): Join<Int, (Int) -> T> = size j ::get
 

@@ -7,7 +7,7 @@ import com.vsiwest.s_
 import com.vsiwest.toArray
 import com.vsiwest.toList
 import com.vsiwest.α
-import com.vsiwest.`▶`
+import com.vsiwest.`⏵`
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -88,7 +88,7 @@ class JoinTests {
     @Test
     fun seriesIterableReturnsCorrectValues() {
         val series = Join(mapOf(0 to "zero", 1 to "one"))
-        val iterable = series.`▶`
+        val iterable = series.`⏵`
         val list = iterable.toList()
         assertEquals(2, list.size)
         assertEquals("zero", list[0].b)

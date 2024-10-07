@@ -11,7 +11,6 @@ import com.vsiwest.get
 import com.vsiwest.getOrNull
 import com.vsiwest.isEmpty
 import com.vsiwest.j
-import com.vsiwest.size
 import com.vsiwest.toSeries
 import com.vsiwest.α
 import com.vsiwest.`⏪`
@@ -128,10 +127,10 @@ class BigInt private constructor(private val sign: Boolean?, private val magnitu
             other.sign?.let { if (sign != other.sign) return if (sign) 1 else -1 } ?: return if (sign) 1 else -1
         } ?: other.sign?.let { return if (other.sign) -1 else 1 } ?: return 0
 
-        val magnitudeComparison = magnitude.size().compareTo(other.magnitude.size())
+        val magnitudeComparison = magnitude.a.compareTo(other.magnitude.a)
         if (magnitudeComparison.nz) return magnitudeComparison
 
-        for (i in magnitude.size() - 1 downTo 0) {
+        for (i in magnitude.a - 1 downTo 0) {
             val magnitudeComparison = magnitude[i].compareTo(other.magnitude[i])
             if (magnitudeComparison.nz) return magnitudeComparison
         }
@@ -143,20 +142,20 @@ class BigInt private constructor(private val sign: Boolean?, private val magnitu
     operator fun not(): BigInt = BigInt(sign?.let(Boolean::not), magnitude α UInt::inv)
 
     fun or(bigInt: BigInt): BigInt = BigInt(
-        sign, max(magnitude.size(), bigInt.magnitude.size()) j {
+        sign, max(magnitude.a, bigInt.magnitude.a) j {
             (magnitude.getOrNull(it) ?: 0u) or (bigInt.magnitude.getOrNull(it) ?: 0u)
         }
     )
 
     fun and(bigInt: BigInt): BigInt = BigInt(
-        sign, max(magnitude.size(), bigInt.magnitude.size()) j {
+        sign, max(magnitude.a, bigInt.magnitude.a) j {
             (magnitude.getOrNull(it) ?: 0u) and (bigInt.magnitude.getOrNull(it) ?: 0u)
         }
     )
 
 
     fun xor(bigInt: BigInt): BigInt = BigInt(
-        sign, max(magnitude.size(), bigInt.magnitude.size()) j {
+        sign, max(magnitude.a, bigInt.magnitude.a) j {
             (magnitude.getOrNull(it) ?: 0u) xor (bigInt.magnitude.getOrNull(it) ?: 0u)
         }
     )
@@ -179,7 +178,7 @@ class BigInt private constructor(private val sign: Boolean?, private val magnitu
     override fun toInt(): Int = toLong().toInt()
     override fun toLong(): Long = when {
         sign == null -> 0L
-        magnitude.size() > 2 -> throw ArithmeticException("Overflow")
+        magnitude.a > 2 -> throw ArithmeticException("Overflow")
         else -> {
             val value = magnitude[0].toLong() or (magnitude[1].toLong() shl 32)
             if (sign) value else -value
@@ -249,7 +248,7 @@ class BigInt private constructor(private val sign: Boolean?, private val magnitu
 
         val result = mutableListOf<UInt>()
         var carry = 0uL
-        val maxSize = max(m1.size(), m2.size())
+        val maxSize = max(m1.a, m2.a)
 
         for (i in 0 until maxSize) {
             val x = m1.getOrNull(i) ?: 0u
