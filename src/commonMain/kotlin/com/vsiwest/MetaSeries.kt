@@ -13,7 +13,6 @@ typealias MetaSeries<K, V> = Join<K, (K) -> V>
 //val <K : Comparable<K>, V> MetaSeries<K, V>.size get() = size()
 
 
-
 operator fun <K : Comparable<K>, V> MetaSeries<K, V>.get(x: K): V = b(x)
 
 
@@ -147,7 +146,6 @@ fun seriesOf(range: IntRange): Series<Int> = object : Series<Int> {
     override val a: Int get() = range.last - range.first + 1
     override val b: (Int) -> Int get() = { i -> range.first + i }
 }
-
 
 
 fun Series<Char>.parseIsoDateTime(): LocalDateTime {

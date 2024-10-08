@@ -1,4 +1,4 @@
-@file:Suppress("UNCHECKED_CAST") @file:OptIn(ExperimentalUnsignedTypes::class)
+@file:Suppress("UNCHECKED_CAST", "OVERRIDE_BY_INLINE") @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package com.vsiwest
 
