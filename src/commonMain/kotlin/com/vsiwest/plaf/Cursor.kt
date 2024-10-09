@@ -2,15 +2,17 @@
 
 package com.vsiwest.plaf
 
+import com.vsiwest.*
 import com.vsiwest.Series
 import com.vsiwest.Series2
 import com.vsiwest.j
-import com.vsiwest.*
 import com.vsiwest.meta.IOMemento.*
 import com.vsiwest.meta.IOMemento.IoLong
+import com.vsiwest.meta.conversion
+import com.vsiwest.meta.ioMemento
 import com.vsiwest.`⏵`
-import kotlin.jvm.JvmInline
 import kotlin.jvm.*
+import kotlin.jvm.JvmInline
 import kotlin.math.*
 import kotlin.random.Random
 import kotlin.reflect.*
@@ -65,8 +67,17 @@ fun Cursor.meta(vararg s: String): Series<Int> {
     }
 }
 
+  inline fun <  reified K : Comparable<K>,   reified V> MetaSeries<K, V>.get(index: Series<Int>): Series<V> {
+
+    return index.a  j  { x: Int ->
+     val invoke: K = index.a.ioMemento.conversion<V, K>(a.ioMemento).invoke(index[x] as V)
+     b(invoke as K)
+
+ }
+}
+
 /** cursor get by String vararg -- return a Cursor with the columns specified by the vararg */
-fun Cursor.get(vararg s: String): Cursor = this[meta(*s)]
+fun Cursor.get(vararg s: String): Cursor = (this as Series<RowVec>).get(meta(*s))
 
 /** ColumnExclusion value class
  *

@@ -6,7 +6,6 @@ package com.vsiwest.meta
 import com.vsiwest.CharSeries
 import com.vsiwest.Series
 import com.vsiwest.asString
-import com.vsiwest.bitops.CZero.nz
 import com.vsiwest.decodeToChars
 import com.vsiwest.encodeToByteArray
 import com.vsiwest.get
@@ -25,7 +24,6 @@ import com.vsiwest.parseLong
 import com.vsiwest.toArray
 import com.vsiwest.toSeries
 import kotlinx.datetime.*
-import kotlin.reflect.KFunction
 import kotlin.text.encodeToByteArray
 
 interface TypeMemento {
@@ -38,54 +36,24 @@ inline fun <reified V> V.isIntegral() = when (this) {
 }
 
 inline fun <reified V : IOMemento> V.networkBits() = networkSize?.let { it * 8 }
-inline fun <reified V> V.networkBits(): Int = this.ioMemento().networkSize?.let { it * 8 } ?: -1
 
-inline fun <reified V> V.ioMemento(): IOMemento = when (this) {
-    is Byte -> IOMemento.IoByte
-    is UByte -> IOMemento.IoUByte
-    is Short -> IOMemento.IoShort
-    is UShort -> IOMemento.IoUShort
-    is Int -> IOMemento.IoInt
-    is UInt -> IOMemento.IoUInt
-    is Long -> IOMemento.IoLong
-    is ULong -> IOMemento.IoULong
-    is Float -> IOMemento.IoFloat
-    is Double -> IOMemento.IoDouble
-    is Boolean -> IOMemento.IoBoolean
-    is Instant -> IOMemento.IoInstant
-    is LocalDate -> IOMemento.IoLocalDate
-    else -> IOMemento.IoNothing
-}
-
-
-/**
- * Converts an instance of type \[A\] to type \[B\] using the specified \[IOMemento\] instances for encoding and decoding.
- *
- * This function assumes:
- * - Numericals are in the same byte order.
- * - Byte arrays from numbers are binary and not \[toString\].
- * - Booleans are represented as false = 0, null, unit; true = 1; reversible as needed, but also 't', 'f' in any numerical form as well as '0', '1' respectively.
- * - Doubles and floats will do thenonce comparison and not exact comparison.
- * - Booleans serve back binary numerical scalar values only but will read the options above.
- * - Destinations to series, arrays, strings, will use \[CharSequence\] bytes by any means available e.g. \[toString\].
- *
- * @param A The source type.
- * @param B The target type.
- * @param to The \[IOMemento\] instance used for the target type.
- * @return A function that converts an instance of type \[A\] to type \[B\].
- */
-inline fun <reified A, reified B> IOMemento.conversion(to: IOMemento): (A) -> B = { a: A ->
-    val from = this
-    val fromDecoder = from.createDecoder(from.networkSize ?: 0)
-    val toEncoder = to.createEncoder(to.networkSize ?: 0)
-    val toDecoder = to.createDecoder(to.networkSize ?: 0)
-    val fromEncoder = from.createEncoder(from.networkSize ?: 0)
-    val fromBytes = fromEncoder(a)
-    val b = fromDecoder(fromBytes)
-    val toBytes = toEncoder(b)
-    val a2 = toDecoder(toBytes)
-    a2 as B
-}
+val <  V> V.ioMemento: IOMemento
+    get() = when (this) {
+        is Byte -> IOMemento.IoByte
+        is UByte -> IOMemento.IoUByte
+        is Short -> IOMemento.IoShort
+        is UShort -> IOMemento.IoUShort
+        is Int -> IOMemento.IoInt
+        is UInt -> IOMemento.IoUInt
+        is Long -> IOMemento.IoLong
+        is ULong -> IOMemento.IoULong
+        is Float -> IOMemento.IoFloat
+        is Double -> IOMemento.IoDouble
+        is Boolean -> IOMemento.IoBoolean
+        is Instant -> IOMemento.IoInstant
+        is LocalDate -> IOMemento.IoLocalDate
+        else -> IOMemento.IoNothing
+    }
 
 
 enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Series<Char>) -> Any) : TypeMemento {

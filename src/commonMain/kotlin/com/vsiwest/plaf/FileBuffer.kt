@@ -1,7 +1,7 @@
 package com.vsiwest.plaf
 
-import debug
-import logDebug
+import com.vsiwest.debug
+import com.vsiwest.logDebug
 
 
 fun <T> FileBuffer.use(block: (FileBuffer) -> T) {

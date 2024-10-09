@@ -5,7 +5,6 @@ import com.vsiwest.Twin
 
 // Narsese grammar constructs using backticks for special glyphs
 sealed interface `⟨sentence⟩`
-
 data class `⟨judgment⟩`(
     val tense: `⟨tense⟩`?,
     val statement: `⟨statement⟩`,
@@ -32,13 +31,9 @@ data class `⟨statement⟩`(
 
 // Term representation
 sealed interface `⟨term⟩`
-
 data class `⟨word⟩`(val value: String) : `⟨term⟩`
-
 sealed interface `⟨variable⟩` : `⟨term⟩`
-
 data class `⟨independent-variable⟩`(val name: String) : `⟨variable⟩`
-
 data class `⟨dependent-variable⟩`(
     val name: String,
     val dependencies: List<`⟨independent-variable⟩`>,
@@ -55,20 +50,19 @@ enum class `⟨copula⟩` {
     `∘→∘`,
     `⇒`,
     `⇔`,
-    `/⇒`,
-    `\\⇒`,
-    `|⇒`,
-    `/⇔`,
-    `|⇔`
+    `2⇒`,
+    `00⇒`  ,
+    `1⇒`,
+    `2⇔`,
+    `1⇔`;
 }
 
 // Tense with special glyphs
 enum class `⟨tense⟩` {
-    `/⇒`,
-    `\\⇒`,
-    `|⇒`
+    `2⇒`,
+    `00⇒`,
+    `1⇒`;
 }
-
 // Truth and Desire values using Twin typealias
 typealias `⟨truth-value⟩` = Twin<Double> // <frequency, confidence>
 typealias `⟨desire-value⟩` = Twin<Double> // <desire, confidence>
@@ -84,4 +78,3 @@ data class `⟨difference⟩`(
 ) : `⟨term⟩`
 
 data class `⟨product⟩`(val terms: Series<`⟨term⟩`>) : `⟨term⟩`
-
