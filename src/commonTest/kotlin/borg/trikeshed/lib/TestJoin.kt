@@ -9,6 +9,7 @@ import com.vsiwest.dsel.`⟨question⟩`
 import com.vsiwest.dsel.`⟨statement⟩`
 import com.vsiwest.dsel.`⟨word⟩`
 import com.vsiwest.get
+import com.vsiwest.toSeries
 import com.vsiwest.j
 import com.vsiwest.s_
 import com.vsiwest.toArray

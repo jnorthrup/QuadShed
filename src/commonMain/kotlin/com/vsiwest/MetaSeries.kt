@@ -69,17 +69,6 @@ infix fun <V, R1, F1 : (V) -> R1> (F1).revpipe(v: V) = ::invoke //  this `←` v
 // can use  f (A,B)->C from (a j b ).invoke(f(a,b))
 infix fun <A, B, C> ((A, B) -> C).invoke(j: Join<A, B>) = this(j.a, j.b)
 
-/**
- * series get by Series<Int>
- */
-inline fun <K : Comparable<K>, V> MetaSeries<K, V>.get(index:  Series< K>): MetaSeries<K, V> {
-
-    val a = index.a
-    val b = index.b
-    if(a.isIntegral())
-
-    return a j { i: K -> this[b(i   )] }
-}
 
 /**
  * series get by array
