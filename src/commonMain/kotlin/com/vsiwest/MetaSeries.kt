@@ -240,8 +240,7 @@ fun <K : Comparable<K>> MetaSeries<K, Char>.parseDouble(): Double {
 inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.take(i: K) = i j b
 inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.takeLast(i: K) = i j { it: K -> b(a.duckMinus(a, it)) }
 
-inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.drop(i: K) =
-    a.duckMinus(a, i) j { it: K -> b(a.duckPlus(a, it)) }
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.drop(i: K) =    (a  as K).duckMinus (a, i) j { it: K -> b(a.duckPlus(a, it)) }
 
 inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.dropLast(i: K) = a.duckMinus(a, i) j b
 
@@ -258,7 +257,6 @@ fun <K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> = (when (a) {
     is ULong -> (ULong::toInt j Int::toULong) as Join<((K) -> Int), ((Int) -> K)>
     else -> throw IllegalArgumentException("Unsupported type")
 }.let { thing ->
-
     val (ti: (K) -> Int, fi: (Int) -> K) = thing
     ti(a) j { i: Int -> b(fi(i)) }
 } as Series<V>)

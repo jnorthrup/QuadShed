@@ -160,8 +160,11 @@ object CSVUtil {
             val headerNames = header α { delimR ->
                 val a = delimR.a
                 val toInt = delimR.b
-                val value1 = file[ a.toInt()until toInt.toInt()  ]
-                val toTypedArray = value1.toArray()
+                val range = a.toLong() until toInt.toLong()
+
+                val value1 = file[range]
+                val toSeries = value1.toSeries()
+                val toTypedArray = toSeries!!.toArray()
 
                 CharSeries(toTypedArray).decodeUtf8()
             }
