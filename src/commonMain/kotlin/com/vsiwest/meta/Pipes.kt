@@ -92,5 +92,5 @@ fun main() {
             { (it % 1000000007).toInt() } `•` // Common modulo operation to handle large numbers
             ::isPrime
 
-    println("Test 6: ${largePipeline.value}")  // Test with a large number
+    println("Test 6: ${largePipeline.value}" )  // Test with a large number
 }

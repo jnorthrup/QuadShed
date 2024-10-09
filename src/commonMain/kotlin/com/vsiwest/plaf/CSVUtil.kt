@@ -37,6 +37,7 @@ import kotlin.toUShort
 typealias DelimitRange = Twin<UShort>
 
 
+
 /** forward scanner of commas, quotes, and newlines
  */
 object CSVUtil {
@@ -125,7 +126,7 @@ object CSVUtil {
         ): Cursor {
             //first we call parseSegments with our fileEvidence then we trap the RecordMeta child types as a separate meta,
             // then we use the CharSeries cursor features to create a String marshaller per column
-            val segments = parseSegments(file, fileEvidence)
+            val segments = parseSegments (file, fileEvidence)
             val meta = (newMeta ?: (segments.meta α { (it as RecordMeta).child!! })).debug {
                 val l = it.toList()
                 logDebug { "parseConformantmeta: $l" }
@@ -157,7 +158,12 @@ object CSVUtil {
             val hdrParsRes = CSVUtil.parseLine(file, 0, upperBound)
             val header = hdrParsRes
             val headerNames = header α { delimR ->
-                (CharSeries(file[delimR.a until delimR.b ]).decodeUtf8()).asString()
+                val a = delimR.a
+                val toInt = delimR.b
+                val value1 = file[ a.toInt()until toInt.toInt()  ]
+                val toTypedArray = value1.toArray()
+
+                CharSeries(toTypedArray).decodeUtf8()
             }
             logDebug { "headerNames: ${headerNames.toList()}" }
 
@@ -170,9 +176,9 @@ object CSVUtil {
                 if (file1.a < headerNames.a.toLong()) break
 
                 val lineEvidence = fileEvidence?.let { mutableListOf<TypeEvidence>() }
-                val parsRes = CSVUtil.parseLine(file1, 0, file1.size, lineEvidence)
+                val parsRes = CSVUtil.parseLine(file1, 0, file1.size(), lineEvidence)
                 lineEvidence?.apply { fileEvidence.update(lineEvidence) }
-                val line = parsRes α ::DelimitRange
+                val line = parsRes //α { ::DelimitRange }
                 val dstart = datazero1
                 datazero1 += line.last().b.toLong()
 
@@ -197,7 +203,7 @@ object CSVUtil {
             val convertedSegmentLengths = conversionSegments?.right?.toArray()
             val convertedSegments = convertedSegmentLengths?.fold(mutableListOf<DelimitRange>()) { acc, length ->
                 val last = acc.lastOrNull()?.b ?: 0.toUShort()
-                acc.add(DelimitRange((last.toInt() shl 16) or (last + length.toUInt()).toUShort().toInt()))
+                acc.add(DelimitRange(last, (last + length.toUInt()).toUShort()))
                 acc
             }
 

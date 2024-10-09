@@ -1,35 +1,38 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_WARNING")
 
 package com.vsiwest.meta
 
 
- import com.vsiwest.CharSeries
- import com.vsiwest.Series
- import com.vsiwest.asString
- import com.vsiwest.decodeToChars
- import com.vsiwest.encodeToByteArray
- import com.vsiwest.get
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readInt
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readLong
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readUInt
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readULong
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeInt
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeLong
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeUInt
- import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeULong
- import com.vsiwest.parseDouble
- import com.vsiwest.parseIsoDateTime
- import com.vsiwest.parseLong
- import com.vsiwest.toArray
- import com.vsiwest.toSeries
- import kotlinx.datetime.*
- import kotlin.text.encodeToByteArray
+import com.vsiwest.CharSeries
+import com.vsiwest.Series
+import com.vsiwest.asString
+import com.vsiwest.bitops.CZero.nz
+import com.vsiwest.decodeToChars
+import com.vsiwest.encodeToByteArray
+import com.vsiwest.get
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readInt
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readLong
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readUInt
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.readULong
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeInt
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeLong
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeUInt
+import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec.writeULong
+import com.vsiwest.parseDouble
+import com.vsiwest.parseIsoDateTime
+import com.vsiwest.parseLong
+import com.vsiwest.toArray
+import com.vsiwest.toSeries
+import kotlinx.datetime.*
+import kotlin.reflect.KFunction
+import kotlin.text.encodeToByteArray
 
 interface TypeMemento {
     val networkSize: Int?
 }
-inline fun <reified V > V.isIntegral() = when (this) {
+
+inline fun <reified V> V.isIntegral() = when (this) {
     is Byte, is UByte, is Short, is UShort, is Char, is Int, is UInt, is Long, is ULong -> true
     else -> false
 }
@@ -54,14 +57,45 @@ inline fun <reified V> V.ioMemento(): IOMemento = when (this) {
     else -> IOMemento.IoNothing
 }
 
+
+/**
+ * Converts an instance of type \[A\] to type \[B\] using the specified \[IOMemento\] instances for encoding and decoding.
+ *
+ * This function assumes:
+ * - Numericals are in the same byte order.
+ * - Byte arrays from numbers are binary and not \[toString\].
+ * - Booleans are represented as false = 0, null, unit; true = 1; reversible as needed, but also 't', 'f' in any numerical form as well as '0', '1' respectively.
+ * - Doubles and floats will do thenonce comparison and not exact comparison.
+ * - Booleans serve back binary numerical scalar values only but will read the options above.
+ * - Destinations to series, arrays, strings, will use \[CharSequence\] bytes by any means available e.g. \[toString\].
+ *
+ * @param A The source type.
+ * @param B The target type.
+ * @param to The \[IOMemento\] instance used for the target type.
+ * @return A function that converts an instance of type \[A\] to type \[B\].
+ */
+inline fun <reified A, reified B> IOMemento.conversion(to: IOMemento): (A) -> B = { a: A ->
+    val from = this
+    val fromDecoder = from.createDecoder(from.networkSize ?: 0)
+    val toEncoder = to.createEncoder(to.networkSize ?: 0)
+    val toDecoder = to.createDecoder(to.networkSize ?: 0)
+    val fromEncoder = from.createEncoder(from.networkSize ?: 0)
+    val fromBytes = fromEncoder(a)
+    val b = fromDecoder(fromBytes)
+    val toBytes = toEncoder(b)
+    val a2 = toDecoder(toBytes)
+    a2 as B
+}
+
+
 enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Series<Char>) -> Any) : TypeMemento {
     /**
      * 1 byte of storage, we'll test out 1/0 t/f  for now to account for known implementations which will bew sending us digits
      */
     IoBoolean(1, { charSeries: Series<Char> ->
-        when (charSeries[0].lowercaseChar() ) {
-            't'  , '1' -> true
-            'f'  ,'0' -> false
+        when (charSeries[0].lowercaseChar()) {
+            't', '1' -> true
+            'f', '0' -> false
             else -> throw IllegalArgumentException("invalid boolean: $charSeries")
         }
     }) {

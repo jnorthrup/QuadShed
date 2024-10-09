@@ -23,7 +23,7 @@ inline infix fun < reified A: Comparable<A>,  reified B:Comparable<B>> A.j(other
 
 infix fun <A, B, C, D> BackingStore<*>.j(other: Join<C, D>): Join<Join<A, B>, Join<C, D>> {
     return when {
-        this is BackingStore<*> && other is BackingStore<*> -> {
+         other is BackingStore<*> -> {
             val thisP = this.p as ULong
             val otherP = other.p as ULong
             object : Join<Join<A, B>, Join<C, D>>, BackingStore<ULong> {

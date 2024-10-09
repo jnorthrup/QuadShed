@@ -4,6 +4,7 @@ package com.vsiwest
 
 import com.vsiwest.bitops.CZero.bool
 import com.vsiwest.bitops.CZero.nz
+import com.vsiwest.meta.isIntegral
 import com.vsiwest.plaf.LongSeries
 import kotlinx.datetime.LocalDateTime
 import kotlin.math.pow
@@ -68,16 +69,16 @@ infix fun <V, R1, F1 : (V) -> R1> (F1).revpipe(v: V) = ::invoke //  this `←` v
 // can use  f (A,B)->C from (a j b ).invoke(f(a,b))
 infix fun <A, B, C> ((A, B) -> C).invoke(j: Join<A, B>) = this(j.a, j.b)
 
-
-infix fun <V, R1, F1 : (V) -> R1> (F1).`←`(v: V) = this revpipe v  //
-
-
 /**
  * series get by Series<Int>
  */
-operator fun <T> Series<T>.get(index: Series<Int>): Series<T> {
-    val aszz: Int = index.a
-    return this[IntArray(aszz) { index[it] }]
+inline fun <K : Comparable<K>, V> MetaSeries<K, V>.get(index:  Series< K>): MetaSeries<K, V> {
+
+    val a = index.a
+    val b = index.b
+    if(a.isIntegral())
+
+    return a j { i: K -> this[b(i   )] }
 }
 
 /**
@@ -122,7 +123,7 @@ typealias Curried<A, B, C> = (A) -> (B) -> C
 
 // Isomorphic type checker associations
 inline fun <A, B> isoCheck(
-    crossinline forward: (A) -> B, crossinline backward: (B) -> A
+    crossinline forward: (A) -> B, crossinline backward: (B) -> A,
 ): Join<(A) -> A, (B) -> B> = { a: A -> backward(forward(a)) } j { b: B -> forward(backward(b)) }
 
 // Extension function to create a Series from any Iterable
