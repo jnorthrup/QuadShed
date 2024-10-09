@@ -2,7 +2,6 @@
 
 package com.vsiwest
 
-import borg.trikeshed.lib.asString
 import com.vsiwest.bitops.CZero.nz
 import kotlin.math.min
 
@@ -17,7 +16,7 @@ class CharSeries(
     var pos: Int = 0,
 
     /** the limit accessor */
-    var limit: Int = buf.size(), //initialized to size
+    var limit: Int = buf.a, //initialized to size
 
     /** the mark accessor */
     var mark: Int = -1,
@@ -72,7 +71,7 @@ class CharSeries(
     val clr: CharSeries
         get() = apply {
             pos = 0
-            limit = size()
+            limit = this.a
             mark = -1
         }
 
@@ -120,9 +119,9 @@ class CharSeries(
             pos != other.pos -> return false
             limit != other.limit -> return false
             mark != other.mark -> return false
-            size() != other.size() -> return false
+            this.a != other.a -> return false
             else -> {
-                for (i in 0 until size()) if (b(i) != other.b(i)) return false
+                for (i in 0 until this.a) if (b(i) != other.b(i)) return false
                 return true
             }
         }
@@ -133,7 +132,7 @@ class CharSeries(
         var result = pos
         result = 31 * result + limit
         result = 31 * result + mark
-        result = 31 * result + size()
+        result = 31 * result + this.a
 //include cachecode
         result = 31 * result + cacheCode
         return result
@@ -207,7 +206,7 @@ class CharSeries(
         while (hasRemaining) {
             if (get == lit[i]) {
                 i++
-                if (i == lit.size()) return true
+                if (i == lit.a) return true
             } else {
                 i = 0
             }
@@ -266,7 +265,7 @@ class CharSeries(
 
 operator fun Series<Char>.div(delim: Char): Series<Series<Char>> { //lazy split
     val intList = mutableListOf<Int>()
-    for (x in 0 until size()) if (this[x] == delim) intList.add(x)
+    for (x in 0 until a) if (this[x] == delim) intList.add(x)
 
     /**
      * iarr is an index of delimitted endings of the CharSeries.
@@ -277,7 +276,7 @@ operator fun Series<Char>.div(delim: Char): Series<Series<Char>> { //lazy split
         val p = if (v == 0) 0 else iarr[v.dec()].inc() //start of next
         val l = //is x last index?
             if (v == iarr.lastIndex)
-                size()
+                a
             else
                 iarr[v].dec()
         this[p until l]
@@ -295,9 +294,9 @@ val Series<Char>.cs: CharSequence
 fun Series<Char>.encodeToByteArray(): ByteArray {
 //encode unicode chars to bytes using UTF-8
     var x = 0
-    val r = ByteArray(size() * 3) //trim after
+    val r = ByteArray(a * 3) //trim after
     var spill = 0 //spill cost of unicode encodings
-    while (x < size()) {
+    while (x < a) {
         val c = this[x].code
         when {
             c < 0x80 -> r[x + spill] = c.toByte()

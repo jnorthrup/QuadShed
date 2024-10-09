@@ -1,13 +1,21 @@
 package borg.trikeshed.lib
 
 import com.vsiwest.Join
+import com.vsiwest.Twin
+import com.vsiwest.dsel.`⟨copula⟩`
+import com.vsiwest.dsel.`⟨goal⟩`
+import com.vsiwest.dsel.`⟨judgment⟩`
+import com.vsiwest.dsel.`⟨question⟩`
+import com.vsiwest.dsel.`⟨statement⟩`
+import com.vsiwest.dsel.`⟨word⟩`
 import com.vsiwest.get
+import com.vsiwest.toSeries
 import com.vsiwest.j
 import com.vsiwest.s_
 import com.vsiwest.toArray
 import com.vsiwest.toList
 import com.vsiwest.α
-import com.vsiwest.`▶`
+import com.vsiwest.`⏵`
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -88,10 +96,40 @@ class JoinTests {
     @Test
     fun seriesIterableReturnsCorrectValues() {
         val series = Join(mapOf(0 to "zero", 1 to "one"))
-        val iterable = series.`▶`
+        val iterable = series.`⏵`
         val list = iterable.toList()
         assertEquals(2, list.size)
         assertEquals("zero", list[0].b)
         assertEquals("one", list[1].b)
     }
 }
+
+// Example of a judgment
+val exampleJudgment = `⟨judgment⟩`(
+    tense = null,
+    statement = `⟨statement⟩`(
+        subject = `⟨word⟩`("bird"),
+        copula = `⟨copula⟩`.`→`,
+        predicate = `⟨word⟩`("animal")
+    ),
+    truthValue = Twin(0.9, 0.8)
+)
+
+// Example of a goal
+val exampleGoal = `⟨goal⟩`(
+    statement = `⟨statement⟩`(
+        subject = `⟨word⟩`("I"),
+        copula = `⟨copula⟩`.`→`,
+        predicate = `⟨word⟩`("learn")
+    ),
+    desireValue = Twin(0.95, 0.9)
+)
+
+// Example of a question
+val exampleQuestion = `⟨question⟩`(
+    content = `⟨statement⟩`(
+        subject = `⟨word⟩`("what"),
+        copula = `⟨copula⟩`.`→`,
+        predicate = `⟨word⟩`("knowledge")
+    )
+)

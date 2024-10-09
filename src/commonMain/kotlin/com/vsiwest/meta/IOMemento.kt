@@ -1,11 +1,12 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_WARNING")
 
 package com.vsiwest.meta
 
-import borg.trikeshed.lib.asString
-import borg.trikeshed.lib.decodeToChars
+
 import com.vsiwest.CharSeries
 import com.vsiwest.Series
+import com.vsiwest.asString
+import com.vsiwest.decodeToChars
 import com.vsiwest.encodeToByteArray
 import com.vsiwest.get
 import com.vsiwest.meta.PlatformCodec.Companion.currentPlatformCodec
@@ -29,14 +30,40 @@ interface TypeMemento {
     val networkSize: Int?
 }
 
+inline fun <reified V> V.isIntegral() = when (this) {
+    is Byte, is UByte, is Short, is UShort, is Char, is Int, is UInt, is Long, is ULong -> true
+    else -> false
+}
+
+inline fun <reified V : IOMemento> V.networkBits() = networkSize?.let { it * 8 }
+
+val <  V> V.ioMemento: IOMemento
+    get() = when (this) {
+        is Byte -> IOMemento.IoByte
+        is UByte -> IOMemento.IoUByte
+        is Short -> IOMemento.IoShort
+        is UShort -> IOMemento.IoUShort
+        is Int -> IOMemento.IoInt
+        is UInt -> IOMemento.IoUInt
+        is Long -> IOMemento.IoLong
+        is ULong -> IOMemento.IoULong
+        is Float -> IOMemento.IoFloat
+        is Double -> IOMemento.IoDouble
+        is Boolean -> IOMemento.IoBoolean
+        is Instant -> IOMemento.IoInstant
+        is LocalDate -> IOMemento.IoLocalDate
+        else -> IOMemento.IoNothing
+    }
+
+
 enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Series<Char>) -> Any) : TypeMemento {
     /**
      * 1 byte of storage, we'll test out 1/0 t/f  for now to account for known implementations which will bew sending us digits
      */
     IoBoolean(1, { charSeries: Series<Char> ->
-        when (charSeries[0].lowercaseChar() ) {
-            't'  , '1' -> true
-            'f'  ,'0' -> false
+        when (charSeries[0].lowercaseChar()) {
+            't', '1' -> true
+            'f', '0' -> false
             else -> throw IllegalArgumentException("invalid boolean: $charSeries")
         }
     }) {
@@ -174,3 +201,5 @@ enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Seri
             { value: Any? -> ByteArray(1).apply { this[0] = (value as Byte) } }//take it on faith here
     }
 }
+
+

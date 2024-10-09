@@ -4,6 +4,8 @@ package com.vsiwest
 
 import com.vsiwest.bitops.CZero.bool
 import com.vsiwest.bitops.CZero.nz
+import com.vsiwest.meta.isIntegral
+import com.vsiwest.plaf.LongSeries
 import kotlinx.datetime.LocalDateTime
 import kotlin.math.pow
 
@@ -29,10 +31,10 @@ operator fun <K : Comparable<K>, V> MetaSeries<K, V>.get(r: ClosedRange<K>) = a 
  *  ` { x -> M(x) } ` making the delta symbol into lambda braces and the x into a parameter and the M(x) into the body
  */
 
-inline infix fun <K : Comparable<K>, X, V, M : MetaSeries<K, X>> M.α(crossinline xform: (X) -> V) =
+inline infix fun <reified K : Comparable<K>, X, V, M : MetaSeries<K, X>> M.α(crossinline xform: (X) -> V) =
     this conversion xform
 
-inline infix fun <K : Comparable<K>, X, C, M : MetaSeries<K, X>> M.conversion(crossinline xform: (X) -> C) =
+inline infix fun <reified K : Comparable<K>, X, C, M : MetaSeries<K, X>> M.conversion(crossinline xform: (X) -> C) =
     a j { i: K -> xform(b(i)) }
 
 
@@ -68,7 +70,10 @@ infix fun <V, R1, F1 : (V) -> R1> (F1).revpipe(v: V) = ::invoke //  this `←` v
 infix fun <A, B, C> ((A, B) -> C).invoke(j: Join<A, B>) = this(j.a, j.b)
 
 
-infix fun <V, R1, F1 : (V) -> R1> (F1).`←`(v: V) = this revpipe v  //
+/**
+ * series get by array
+ */
+operator fun <T> Series<T>.get(index: IntArray): Series<T> = Series(index.size) { this[index[it]] }
 
 val <N : Comparable<N>, V> MetaSeries<N, V>.`⏵`: Iterable<V> get() = this.iterable
 val <N : Comparable<N>, V> MetaSeries<N, V>.iterable: Iterable<V>
@@ -85,10 +90,10 @@ val <N : Comparable<N>, V> MetaSeries<N, V>.iterable: Iterable<V>
  * Extension property to get a reversed MetaSeries.
  * This property returns a new MetaSeries where the index of the elements is inverted.
  */
-val <N : Comparable<N>, V> MetaSeries<N, V>.`⏪`: MetaSeries<N, V>
-    get() = reverse()
+val <reified N : Comparable<N>, V> MetaSeries<N, V>.`⏪`: MetaSeries<N, V>
+    inline get() = this.reverse<N, V>()
 
-private fun <N : Comparable<N>, V> MetaSeries<N, V>.reverse() = a j {//we use duckMinus to avoid type erasure
+inline fun <reified N : Comparable<N>, V> MetaSeries<N, V>.reverse() = a j {//we use duckMinus to avoid type erasure
         i: N ->
     b(a.duckMinus(a, i))
 }
@@ -107,7 +112,7 @@ typealias Curried<A, B, C> = (A) -> (B) -> C
 
 // Isomorphic type checker associations
 inline fun <A, B> isoCheck(
-    crossinline forward: (A) -> B, crossinline backward: (B) -> A
+    crossinline forward: (A) -> B, crossinline backward: (B) -> A,
 ): Join<(A) -> A, (B) -> B> = { a: A -> backward(forward(a)) } j { b: B -> forward(backward(b)) }
 
 // Extension function to create a Series from any Iterable
@@ -130,11 +135,6 @@ infix fun <A, B, C> ((A) -> B).andThen(f: (B) -> C): (A) -> C = { a -> f(this(a)
 fun seriesOf(range: IntRange): Series<Int> = object : Series<Int> {
     override val a: Int get() = range.last - range.first + 1
     override val b: (Int) -> Int get() = { i -> range.first + i }
-}
-
-// Extension function to transform a Series into a lazy sequence
-fun <T> Series<T>.asSequence(): Sequence<T> = sequence {
-    for (i in 0 until a) yield(b(i))
 }
 
 
@@ -192,7 +192,7 @@ fun <K : Comparable<K>> MetaSeries<K, Char>.parseDouble(): Double {
     }
 
     var afterE = false
-    while (x < size()) when (val c = this[x]) {
+    while (x < a) when (val c = this[x]) {
         'E', 'e' -> {
             require(!afterE) { "Invalid second exponent" }
             afterE = true
@@ -201,7 +201,7 @@ fun <K : Comparable<K>> MetaSeries<K, Char>.parseDouble(): Double {
             if (c == '-') {
                 exponentSign = -1; x = x.duckInc(x)
             } else if (c == '+') x = x.duckInc(x)
-            while (x < size() && this[x] in '0'..'9') {
+            while (x < a && this[x] in '0'..'9') {
                 exponentValue = exponentValue * 10 + (this[x] - '0')
                 x = x.duckInc(x)
             }
@@ -226,28 +226,28 @@ fun <K : Comparable<K>> MetaSeries<K, Char>.parseDouble(): Double {
     return signMultiplier * result * 10.0.pow((exponentSign * exponentValue - digitsAfterDecimal).toDouble())
 }
 
-fun <K : Comparable<K>, V> MetaSeries<K, V>.take(i: K) = i j b
-fun <K : Comparable<K>, V> MetaSeries<K, V>.takeLast(i: K) = i j { it: K -> b(a.duckMinus(a, it)) }
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.take(i: K) = i j b
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.takeLast(i: K) = i j { it: K -> b(a.duckMinus(a, it)) }
 
-fun <K : Comparable<K>, V> MetaSeries<K, V>.drop(i: K) = a.duckMinus(a, i) j { it: K -> b(a.duckPlus(a, it)) }
-fun <K : Comparable<K>, V> MetaSeries<K, V>.dropLast(i: K) = a.duckMinus(a, i) j b
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.drop(i: K) =    (a  as K).duckMinus (a, i) j { it: K -> b(a.duckPlus(a, it)) }
+
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.dropLast(i: K) = a.duckMinus(a, i) j b
 
 
-fun <K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> =
-     (when (a) {
-        is Boolean ->  ({ it: Boolean -> it.bool }j  { it: Int -> it.nz as Boolean })as Join<((K) -> Int), ((Int) -> K)>
-        is Byte ->  (Byte::toInt j Int::toByte) as Join<((K) -> Int), ((Int) -> K)>
-        is Short ->  (Short::toInt j Int::toShort) as Join<((K) -> Int), ((Int) -> K)>
-        is Char ->  (Char::code j Int::toChar) as Join<((K) -> Int), ((Int) -> K)>
-        is Long ->  (Long::toInt j Int::toLong) as Join<((K) -> Int), ((Int) -> K)>
-        is UByte ->  (UByte::toInt j Int::toUByte) as Join<((K) -> Int), ((Int) -> K)>
-        is UShort ->  (UShort::toInt j Int::toUShort) as Join<((K) -> Int), ((Int) -> K)>
-        is UInt ->  (UInt::toInt j Int::toUInt) as Join<((K) -> Int), ((Int) -> K)>
-        is ULong ->  (ULong::toInt j Int::toULong) as Join<((K) -> Int), ((Int) -> K)>
-        else -> throw IllegalArgumentException("Unsupported type")
-    }.let { thing ->
+fun <K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> = (when (a) {
+    is Boolean -> ({ it: Boolean -> it.bool } j { it: Int -> it.nz as Boolean }) as Join<((K) -> Int), ((Int) -> K)>
+    is Byte -> (Byte::toInt j Int::toByte) as Join<((K) -> Int), ((Int) -> K)>
+    is Short -> (Short::toInt j Int::toShort) as Join<((K) -> Int), ((Int) -> K)>
+    is Char -> (Char::code j Int::toChar) as Join<((K) -> Int), ((Int) -> K)>
+    is Long -> (Long::toInt j Int::toLong) as Join<((K) -> Int), ((Int) -> K)>
+    is UByte -> (UByte::toInt j Int::toUByte) as Join<((K) -> Int), ((Int) -> K)>
+    is UShort -> (UShort::toInt j Int::toUShort) as Join<((K) -> Int), ((Int) -> K)>
+    is UInt -> (UInt::toInt j Int::toUInt) as Join<((K) -> Int), ((Int) -> K)>
+    is ULong -> (ULong::toInt j Int::toULong) as Join<((K) -> Int), ((Int) -> K)>
+    else -> throw IllegalArgumentException("Unsupported type")
+}.let { thing ->
+    val (ti: (K) -> Int, fi: (Int) -> K) = thing
+    ti(a) j { i: Int -> b(fi(i)) }
+} as Series<V>)
 
-         val (ti: (K) -> Int, fi: (Int) -> K) = thing
-
-         ti(a) j { i: Int -> b(fi(i)) }
-    }   as  Series<V>)
+fun <K : Comparable<K>, V> MetaSeries<K, V>.last() = b(a.duckDec(a))
