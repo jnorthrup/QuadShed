@@ -8,7 +8,7 @@ import com.vsiwest.Series2
 import com.vsiwest.j
 import com.vsiwest.meta.IOMemento.*
 import com.vsiwest.meta.IOMemento.IoLong
-import com.vsiwest.meta.conversion
+import com.vsiwest.conv.conversion
 import com.vsiwest.meta.ioMemento
 import com.vsiwest.`⏵`
 import kotlin.jvm.*

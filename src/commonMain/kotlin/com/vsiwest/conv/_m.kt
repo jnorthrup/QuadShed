@@ -1,4 +1,4 @@
-package com.vsiwest
+package com.vsiwest.conv
 
 import kotlin.collections.toMap
 

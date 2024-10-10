@@ -1,6 +1,13 @@
-package com.vsiwest.meta
+@file:Suppress("UNCHECKED_CAST")
+
+package com.vsiwest.conv
 
 
+import com.vsiwest.*
+import com.vsiwest.bitops.CZero.bool
+import com.vsiwest.bitops.CZero.nz
+import com.vsiwest.meta.IOMemento
+import com.vsiwest.meta.ioMemento
 import kotlin.math.abs
 
 /**
@@ -19,7 +26,7 @@ import kotlin.math.abs
  * @param to The [IOMemento] instance used for the target type.
  * @return A function that converts an instance of type [A] to type [B].
  */
-  fun <  A,   B> IOMemento.conversion(to: IOMemento): (A) -> B = { a: A ->
+inline fun <reified A,reified B> IOMemento.conversion(to: IOMemento): (A) -> B = { a: A ->
     val from = this
     val fromEncoder = from.createEncoder(from.networkSize ?: 0)
     val fromDecoder = from.createDecoder(from.networkSize ?: 0)
@@ -52,13 +59,11 @@ import kotlin.math.abs
         else -> toEncoder(intermediateValue)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    val result = toDecoder(toBytes) as B
+    @Suppress("UNCHECKED_CAST") val result = toDecoder(toBytes) as B
 
     // Handle approximate equality for floating-point types
     when {
-        (from == IOMemento.IoFloat || from == IOMemento.IoDouble) &&
-                (to == IOMemento.IoFloat || to == IOMemento.IoDouble) -> {
+        (from == IOMemento.IoFloat || from == IOMemento.IoDouble) && (to == IOMemento.IoFloat || to == IOMemento.IoDouble) -> {
             val epsilon = 1e-6
             val aDouble = (a as? Float)?.toDouble() ?: a as Double
             val resultDouble = (result as? Float)?.toDouble() ?: result as Double
@@ -69,15 +74,17 @@ import kotlin.math.abs
     }
 
     // Handle special cases for destination types
-    when (result ) {
-      is  CharArray  -> {
-             (result as CharArray).concatToString() as B
+    when (result) {
+        is CharArray -> {
+            (result as CharArray).concatToString() as B
         }
-      is  ByteArray  -> (result as? CharSequence)?.toString()?.encodeToByteArray() ?: result as B
-      is  String  -> (result as? CharSequence)?.toString() ?: result.toString() as B
+
+        is ByteArray -> (result as? CharSequence)?.toString()?.encodeToByteArray() ?: result as B
+        is String -> (result as? CharSequence)?.toString() ?: result.toString() as B
         else -> result
     }
 } as (A) -> B
+fun <K : Comparable<K>, V> MetaSeries<K, V>.last() = b.invoke(a.duckDec(a))
 
 // Example usage and test cases
 fun main() {
@@ -104,7 +111,13 @@ fun main() {
 
     // Test boolean string representations
     val stringToBool = IOMemento.IoString.conversion<String, Boolean>(IOMemento.IoBoolean)
-    println("String to Boolean: ${stringToBool("true")}, ${stringToBool("false")}, ${stringToBool("1")}, ${stringToBool("0")}, ${stringToBool("t")}, ${stringToBool("f")}")
+    println(
+        "String to Boolean: ${stringToBool("true")}, ${stringToBool("false")}, ${stringToBool("1")}, ${
+            stringToBool(
+                "0"
+            )
+        }, ${stringToBool("t")}, ${stringToBool("f")}"
+    )
 
     // Test byte array conversions
     val stringToByteArray = IOMemento.IoString.conversion<String, ByteArray>(IOMemento.IoByteArray)
@@ -124,3 +137,8 @@ fun main() {
         println("Caught expected exception for invalid boolean string: ${e.message}")
     }
 }
+
+/* uses conversion on K to Int */
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> = when (a) {
+
+         conversion(a.ioMemento,Int.ioMemento)
