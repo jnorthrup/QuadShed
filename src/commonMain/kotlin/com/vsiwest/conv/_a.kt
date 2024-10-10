@@ -1,6 +1,6 @@
 @file:Suppress("OPT_IN_USAGE", "UNCHECKED_CAST")
 
-package com.vsiwest
+package com.vsiwest.conv
 
 object _a {
     operator fun get(vararg t: Boolean): BooleanArray = t

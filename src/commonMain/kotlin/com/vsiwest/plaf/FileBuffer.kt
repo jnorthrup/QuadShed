@@ -34,8 +34,6 @@ expect class FileBuffer(
     blkSize: Long = -1,
     readOnly: Boolean = true,
 ) : LongSeries<Byte> {
-    override val a: Long
-    override val b: (Long) -> Byte
     val filename: String
     val initialOffset: Long
     val blkSize: Long
@@ -46,6 +44,8 @@ expect class FileBuffer(
     fun size(): Long
     fun get(index: Long): Byte
     fun put(index: Long, value: Byte)
+    override val a: Long
+    override val b: (Long) -> Byte
 }
 
 fun openFileBuffer(

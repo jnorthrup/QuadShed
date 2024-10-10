@@ -1,9 +1,10 @@
 package com.vsiwest.plaf
 
-import Join
-import Series
+import com.vsiwest.Join
+import com.vsiwest.Series
 
 /** not unlike nio.Files */
+
 expect object Files {
     fun readAllLines(filename: String): List<String>
     fun readAllBytes(filename: String): ByteArray

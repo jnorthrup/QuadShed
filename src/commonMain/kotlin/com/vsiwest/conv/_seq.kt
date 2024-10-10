@@ -1,4 +1,4 @@
-package com.vsiwest
+package com.vsiwest.conv
 
 object _seq {
       operator fun <T> get(vararg t: T): kotlin.sequences.Sequence<T> = kotlin.sequences.sequence {

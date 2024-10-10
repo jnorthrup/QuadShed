@@ -2,11 +2,8 @@
 
 package com.vsiwest
 
-import com.vsiwest.bitops.CZero.bool
-import com.vsiwest.bitops.CZero.nz
-import com.vsiwest.meta.isIntegral
-import com.vsiwest.plaf.LongSeries
 import kotlinx.datetime.LocalDateTime
+import kotlin.math.min
 import kotlin.math.pow
 
 typealias MetaSeries<K, V> = Join<K, (K) -> V>
@@ -86,17 +83,14 @@ val <N : Comparable<N>, V> MetaSeries<N, V>.iterable: Iterable<V>
         }
     }
 
+inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.reverse() = a j { it: K -> b(a.duckMinus(a, it)) }
+
 /**
  * Extension property to get a reversed MetaSeries.
  * This property returns a new MetaSeries where the index of the elements is inverted.
  */
 val <reified N : Comparable<N>, V> MetaSeries<N, V>.`⏪`: MetaSeries<N, V>
     inline get() = this.reverse<N, V>()
-
-inline fun <reified N : Comparable<N>, V> MetaSeries<N, V>.reverse() = a j {//we use duckMinus to avoid type erasure
-        i: N ->
-    b(a.duckMinus(a, i))
-}
 
 fun <K : Comparable<K>, V> MetaSeries<K, V>.isEmpty() = a.duckZero == a
 
@@ -234,20 +228,3 @@ inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.drop(i: K) =    (a  a
 inline fun <reified K : Comparable<K>, V> MetaSeries<K, V>.dropLast(i: K) = a.duckMinus(a, i) j b
 
 
-fun <K : Comparable<K>, V> MetaSeries<K, V>.toSeries(): Series<V> = (when (a) {
-    is Boolean -> ({ it: Boolean -> it.bool } j { it: Int -> it.nz as Boolean }) as Join<((K) -> Int), ((Int) -> K)>
-    is Byte -> (Byte::toInt j Int::toByte) as Join<((K) -> Int), ((Int) -> K)>
-    is Short -> (Short::toInt j Int::toShort) as Join<((K) -> Int), ((Int) -> K)>
-    is Char -> (Char::code j Int::toChar) as Join<((K) -> Int), ((Int) -> K)>
-    is Long -> (Long::toInt j Int::toLong) as Join<((K) -> Int), ((Int) -> K)>
-    is UByte -> (UByte::toInt j Int::toUByte) as Join<((K) -> Int), ((Int) -> K)>
-    is UShort -> (UShort::toInt j Int::toUShort) as Join<((K) -> Int), ((Int) -> K)>
-    is UInt -> (UInt::toInt j Int::toUInt) as Join<((K) -> Int), ((Int) -> K)>
-    is ULong -> (ULong::toInt j Int::toULong) as Join<((K) -> Int), ((Int) -> K)>
-    else -> throw IllegalArgumentException("Unsupported type")
-}.let { thing ->
-    val (ti: (K) -> Int, fi: (Int) -> K) = thing
-    ti(a) j { i: Int -> b(fi(i)) }
-} as Series<V>)
-
-fun <K : Comparable<K>, V> MetaSeries<K, V>.last() = b(a.duckDec(a))
