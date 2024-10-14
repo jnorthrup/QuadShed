@@ -109,15 +109,15 @@ typealias Cursor = Series<RowVec>
           behavior
     * `JsonParser.reify(Series<Char>)` parse and return the expression as nested maps and arrays and values
         * Js Arrays return as Series<Any?>, Js Objects return as Map<String,Any?> ; all Js Values return as Any?
-        * for better or worse, non-string ParseDoubleOrNull not only does a cheap withotu string allocation costs but is
+        * for better or worse, non-string ParseDoubleOrNull not only does a cheap without string allocation costs but is
           also the source of parsed nulls when the Double parser falls through.
     * `JsonParser.jsPath(Series<Char>,JsPath)` ~~ghetto jq~~ will traverse the index to the depth of the path provided.
         * `JsPathElement` is an `Either<String,Int>` created by `List<*>::toJsPath()` extension function
-        * optional reified param will return the value at the path reified as a kotlin type else just a segment JsIndex
+        * optional  param will return the value at the path  as a kotlin type else just a segment JsIndex
         * String keys will abort on Arrays but Int keys will fetch the nth index from either a json object or Array
 
 
-* [x] linux-biased Posix IO utils exist for kotlin-common, jvm, and native (linux only)
+* [x] linux-biased Posix IO utils exist for kotlin-common, jvm, and native->posix (macos and linux, )
     * [ ] IO-Uring has been brought in and many tests ported, but not applied knowledgably as yet nor updated to keep
       current with liburing.
 

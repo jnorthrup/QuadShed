@@ -65,7 +65,7 @@ Certainly! Let's walk through the process of creating a 64-bit TwinTwinTwinByte 
 Let's start with the definition of our nested Twin implementation:
 
 ```kotlin
-inline infix fun <T> Twin<T>.j(other: Twin<T>): Twin<Twin<T>> = object : Twin<Twin<T>> {
+ infix fun <T> Twin<T>.j(other: Twin<T>): Twin<Twin<T>> = object : Twin<Twin<T>> {
     override val a: Twin<T> get() = this@j
     override val b: Twin<T> get() = other
 }
