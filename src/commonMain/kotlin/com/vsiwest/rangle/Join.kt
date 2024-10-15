@@ -1,138 +1,199 @@
+import com.vsiwest.rangle.duckConvert
+import com.vsiwest.rangle.duckInc
+import com.vsiwest.rangle.duckMinus
+import com.vsiwest.rangle.duckPlus
+import kotlin.jvm.JvmInline
+
 typealias MetaSeries<K, V> = Join<K, (K) -> V>
 
-interface Join<out A, out B> {
+infix fun <K : Comparable<K>, V, C> MetaSeries<K, V>.convert(lens: (V) -> C) = a j { it: K -> lens(b(it)) }
+
+inline fun <K : Comparable<K>, reified V> MetaSeries<K, V>.toArray(): Array<V> =
+    Array(0.duckConvert(a)) { it: Int -> b(a.duckConvert(it)) }
+
+inline fun <K : Comparable<K>, reified V> MetaSeries<K, V>.toList(): AbstractList<V> = object : AbstractList<V>() {
+    override val size: Int get() = 0.duckConvert(a)
+    override fun get(index: Int): V = b(a.duckConvert(index))
+}
+
+
+val <K>MetaSeries<K, *>.size get() = a
+
+typealias Series <V> = Join<Int, (Int) -> V>
+
+interface Join<A, out B> {
     val a: A
     val b: B
 }
 
-// Safe conversion extension function
-@Suppress("UNCHECKED_CAST")
-inline fun <A : Comparable<A>, P : Comparable<P>> A.safeConvert(foreign: P): A = when (this) {
-    is Boolean -> when (foreign) {
-        is Number -> foreign.toInt() != 0
-        is Boolean -> foreign
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Boolean")
-    } as A
-    is Byte -> when (foreign) {
-        is Number -> foreign.toByte()
-        is Char -> foreign.code.toByte()
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Byte")
-    } as A
-    is Short -> when (foreign) {
-        is Number -> foreign.toShort()
-        is Char -> foreign.code.toShort()
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Short")
-    } as A
-
-    is Int -> when (foreign) {
-        is Number -> foreign.toInt()
-        is Char -> foreign.code
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Int")
-    } as A
-    is Long -> when (foreign) {
-        is Number -> foreign.toLong()
-        is Char -> foreign.code.toLong()
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Long")
-    } as A
-    is Float -> when (foreign) {
-        is Number -> foreign.toFloat()
-        is Char -> foreign.code.toFloat()
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Float")
-    } as A
-    is Double -> when (foreign) {
-        is Number -> foreign.toDouble()
-        is Char -> foreign.code.toDouble()
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Double")
-    } as A
-    is Char -> when (foreign) {
-        is Number -> foreign.toInt().toChar()
-        is Char -> foreign
-        else -> throw UnsupportedOperationException("Cannot convert ${foreign::class.simpleName} to Char")
-    } as A
-    else -> throw UnsupportedOperationException("Unsupported conversion to: ${this::class.simpleName}")
+// a j b = Join<A, B>
+infix fun <A, B> A.j(b: B): Join<A, B> = object : Join<A, B> {
+    override val a: A = this@j
+    override val b: B = b
 }
 
 // Flexible get function for MetaSeries
 inline operator fun <K : Comparable<K>, V, P : Comparable<P>> MetaSeries<K, V>.get(index: P): V {
-    val convertedIndex: K = this.a.safeConvert(index)
+    val convertedIndex: K = this.a.duckConvert(index)
     return b(convertedIndex)
 }
 
-// Example usage
-fun main() {
-    // Create MetaSeries for each primitive type
-    val booleanSeries: MetaSeries<Boolean, String> = object : Join<Boolean, (Boolean) -> String> {
-        override val a: Boolean = true
-        override val b: (Boolean) -> String = { if (it) "True" else "False" }
+
+/** α
+ * (λx.M[x]) → (λy.M[y])	α-conversion
+ * https://en.wikipedia.org/wiki/Lambda_calculus
+ *
+ * in kotlin terms, λ above is a lambda expression and M is a function and the '.' is the body of the lambda
+ * therefore the function M is the receiver of the extension function and the lambda expression is the argument
+ *
+ *  the simplest possible kotlin example of λx.M[x] is
+ *  ` { x -> M(x) } ` making the delta symbol into lambda braces and the x into a parameter and the M(x) into the body
+ */
+
+inline infix fun <X, C, V : Series<X>> V.conversion(crossinline xform: (X) -> C): Series<C> = size j { i -> xform(this[i]) }
+
+/*iterable conversion*/
+infix fun <X, C, Subject : Iterable<X>> Subject.conversion(xform: (X) -> C) = object : Iterable<C> {
+    override fun iterator(): Iterator<C> = object : Iterator<C> {
+        val iter: Iterator<X> = this@conversion.iterator()
+        override fun hasNext(): Boolean = iter.hasNext()
+        override fun next(): C = xform(iter.next())
     }
-
-    val byteSeries: MetaSeries<Byte, Int> = object : Join<Byte, (Byte) -> Int> {
-        override val a: Byte = 127
-        override val b: (Byte) -> Int = { it.toInt() * 2 }
-    }
-
-    val shortSeries: MetaSeries<Short, Double> = object : Join<Short, (Short) -> Double> {
-        override val a: Short = 32767
-        override val b: (Short) -> Double = { it.toDouble() / 2 }
-    }
-
-    val intSeries: MetaSeries<Int, String> = object : Join<Int, (Int) -> String> {
-        override val a: Int = 1000000
-        override val b: (Int) -> String = { "Value $it" }
-    }
-
-    val longSeries: MetaSeries<Long, Float> = object : Join<Long, (Long) -> Float> {
-        override val a: Long = 1000000000L
-        override val b: (Long) -> Float = { it.toFloat() / 1000 }
-    }
-
-    val floatSeries: MetaSeries<Float, Long> = object : Join<Float, (Float) -> Long> {
-        override val a: Float = 3.14f
-        override val b: (Float) -> Long = { (it * 1000).toLong() }
-    }
-
-    val doubleSeries: MetaSeries<Double, Int> = object : Join<Double, (Double) -> Int> {
-        override val a: Double = 3.14159265359
-        override val b: (Double) -> Int = { (it * 100).toInt() }
-    }
-
-    val charSeries: MetaSeries<Char, String> = object : Join<Char, (Char) -> String> {
-        override val a: Char = 'Z'
-        override val b: (Char) -> String = { it.toString().repeat(3) }
-    }
-
-    // Test with various index types
-    println("Boolean series:")
-    println("  with Int 0: ${booleanSeries[0]}")
-    println("  with Int 1: ${booleanSeries[1]}")
-    println("  with Double 0.0: ${booleanSeries[0.0]}")
-    println("  with Double 0.1: ${booleanSeries[0.1]}")
-
-    println("\nByte series:")
-    println("  with Int: ${byteSeries[64]}")
-    println("  with Double: ${byteSeries[64.5]}")
-
-    println("\nShort series:")
-    println("  with Int: ${shortSeries[1000]}")
-    println("  with Long: ${shortSeries[1000L]}")
-
-    println("\nInt series:")
-    println("  with Int: ${intSeries[500000]}")
-    println("  with Double: ${intSeries[500000.75]}")
-
-    println("\nLong series:")
-    println("  with Int: ${longSeries[500000000]}")
-    println("  with Float: ${longSeries[500000000f]}")
-
-    println("\nFloat series:")
-    println("  with Int: ${floatSeries[3]}")
-    println("  with Double: ${floatSeries[3.14]}")
-
-    println("\nDouble series:")
-    println("  with Int: ${doubleSeries[3]}")
-    println("  with Float: ${doubleSeries[3.14f]}")
-
-    println("\nChar series:")
-    println("  with Int: ${charSeries[65]}")  // ASCII for 'A'
-    println("  with Char: ${charSeries['B']}")
 }
+
+
+/** this is an alpha conversion however the type erasure forces inlining here for Arrays as a holdover from java
+ *   */
+inline infix fun <X, C> Array<X>.conversion(crossinline xform: (X) -> C): Series<C> = size j { i: Int -> xform(this[i]) }
+
+//metaseries get(closedreange)
+inline operator fun <K : Comparable<K>, V> MetaSeries<K, V>.get(range: ClosedRange<K>) =
+//the range length, converted to the type of the series
+    range.run {
+        val expans = endInclusive.duckMinus(endInclusive, start)
+
+        //find size from range
+        val size = expans.duckInc(expans)
+
+        //return a new series with the range
+        a j { i: K -> b(i.duckPlus(i, start)) }
+    }
+
+
+val <K>K.networkBits: Int? get() = null
+
+
+val <K : Comparable<K>>K.networkBits: Int?
+    get() = when (this) {
+        is Boolean -> 1
+        is Byte -> 8
+        is Short -> 16
+        is Int -> 32
+        is Long -> 64
+        is Float -> 32
+        is Double -> 64
+        is Char -> 16
+        else -> null
+    }
+
+
+infix fun <A, B> A.jb(b: B): Join<A, B> = object : Join<A, B> {
+    override val a: A = this@jb
+    override val b: B = b
+}
+
+operator fun <K : Comparable<K>, V> MetaSeries<K, V>.iterator(): Iterator<V> = MetaSeriesIterable(this).iterator()
+
+
+@JvmInline
+value class MetaSeriesIterable<K : Comparable<K>, V>(val series: MetaSeries<K, V>) : Iterable<V>,
+    Join<K, (K) -> V> by series {
+    override fun iterator(): Iterator<V> = object : Iterator<V> {
+        var index = a
+        override fun hasNext(): Boolean = a > index
+        override fun next(): V = b(index).also { index = index.duckInc(index) }
+    }
+}
+
+/**
+ * A comparable wrapper for MetaSeriesIterable
+ */
+@JvmInline
+value class MetaSeriesComparable<K : Comparable<K>, V>(val series: MetaSeriesIterable<K, V>) :
+    Comparable<MetaSeriesComparable<K, V>>, Join<K, (K) -> V> by series {
+    override fun compareTo(other: MetaSeriesComparable<K, V>): Int {
+        val iterator = series.iterator()
+        val otherIterator = other.series.iterator()
+        while (iterator.hasNext() && otherIterator.hasNext()) {
+            val next = iterator.next()
+            val otherNext = otherIterator.next()
+            if (next != otherNext) {
+                return next.toString().compareTo(otherNext.toString())
+            }
+        }
+        return 0
+    }
+
+
+}
+
+/**Let's consider a MetaSeries of Byte values (8 bits each) in a 64-bit register:
+
+Size: 7 (encoded as 6, requires 3 bits)
+Values: v1, v2, v3, v4, v5, v6, v7 (each 8 bits)
+
+Bit layout:
+```
+63  61 60    53 52    45 44    37 36    29 28    21 20    13 12     5 4      0
+v   v v      v v      v v      v v      v v      v v      v v      v v      v
++---+--------+--------+--------+--------+--------+--------+--------+--------+
+|110|vvvvvvvv|vvvvvvvv|vvvvvvvv|vvvvvvvv|vvvvvvvv|vvvvvvvv|vvvvvvvv|unused  |
++---+--------+--------+--------+--------+--------+--------+--------+--------+
+^   ^        ^        ^        ^        ^        ^        ^        ^
+|   |        |        |        |        |        |        |        |
+|   |        |        |        |        |        |        |        +-- Unused bits (5 bits)
+|   |        |        |        |        |        |        +----------- v7 (8 bits)
+|   |        |        |        |        |        +-------------------- v6 (8 bits)
+|   |        |        |        |        +----------------------------- v5 (8 bits)
+|   |        |        |        +------------------------------------ v4 (8 bits)
+|   |        |        +------------------------------------------- v3 (8 bits)
+|   |        +-------------------------------------------------- v2 (8 bits)
+|   +--------------------------------------------------------- v1 (8 bits)
++-------------------------------------------------------------- Encoded size (6 = 7-1, 3 bits)
+```
+Explanation:
+
+1. Size encoding:
+- Actual size is 7, encoded as 6 (7-1)
+- 6 in binary is 110, which requires 3 bits
+- These 3 bits are placed in the most significant bits: 110
+
+2. Value packing:
+- Each Byte value requires 8 bits
+- We can fit 7 complete Bytes (56 bits) in the remaining 61 bits
+- The remaining 5 bits are unused in this 64-bit word
+
+3. Efficient use of space:
+- This layout allows us to pack 7 Byte values into a single 64-bit word
+- Only 5 bits are unused, maximizing the use of available space
+
+Decoding process:
+
+1. Extract size: Read the first 3 bits (110), add 1 to get 7
+2. Extract values: Read each subsequent 8-bit segment for values v1 through v7
+
+the register has no use for K at decode time so no info is implied about K
+
+ when a reification doesn't fit or is not pure bits, the return is null
+
+
+ */
+inline fun <K : Comparable<K>, reified V : Comparable<V>> MetaSeriesComparable<K, V>.reify(r: Int = 64): Join<K, (K) -> V>? {
+    //determine sizebits
+    val sizeBits = a.
+
+
+}
+
+
+
