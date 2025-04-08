@@ -122,7 +122,7 @@ infix fun<A,B> (A).jr(b:B) {
 }
 
 
-enum binaryFunct{
+enum class binaryFunct{
     `shl`,
     `shr`,
     `xor`,
