@@ -340,6 +340,10 @@ interface BitOps<Primitive : Comparable<Primitive>> {
 }
 
 
+interface TypeMemento {
+    val networkSize: Int?
+}
+
 enum class IOMemento(override val networkSize: Int? = null, val fromChars: (Series<Char>) -> Any) : TypeMemento {
     IoBoolean(1, {
         when (it[0]) {
