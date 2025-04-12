@@ -122,13 +122,13 @@ infix fun<A,B> (A).jr(b:B) {
 }
 
 
-enum binaryFunct{
-    `shl`,
-    `shr`,
-    `xor`,
-    `and`,
-    `plus`,
-    `minus`
+enum class BinaryFunct {
+    SHL,
+    SHR,
+    XOR,
+    AND,
+    PLUS,
+    MINUS
 }
 
 interface PlatformCodec {
