@@ -27,8 +27,14 @@ fun convertCursorTypes(stringCursor: Cursor, targetSchema: Series<ColumnMeta>): 
                     // Convert string to target type based on IOMemento
                     convertStringToType(stringValue, targetMeta.type)
                 }
+            } catch (e: NumberFormatException) {
+                println("ERROR: Number conversion failed row $rowIndex, col $colIndex ('${targetMeta.name}'): value='$stringValue', target=${targetMeta.type}. Error: ${e.message}")
+                null // Default to null on conversion error
+            } catch (e: IllegalArgumentException) {
+                println("ERROR: Illegal argument conversion failed row $rowIndex, col $colIndex ('${targetMeta.name}'): value='$stringValue', target=${targetMeta.type}. Error: ${e.message}")
+                null // Default to null on conversion error
             } catch (e: Exception) {
-                println("Warning: Type conversion failed for row $rowIndex, col $colIndex ('${targetMeta.name}'): value='$stringValue', target=${targetMeta.type}. Error: ${e.message}")
+                println("ERROR: Type conversion failed for row $rowIndex, col $colIndex ('${targetMeta.name}'): value='$stringValue', target=${targetMeta.type}. Error: ${e.message}")
                 null // Or throw, or use a default?
             }
 
