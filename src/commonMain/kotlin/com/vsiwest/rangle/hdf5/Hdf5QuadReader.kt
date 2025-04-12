@@ -296,20 +296,20 @@ class Hdf5QuadReader(private val fileBuffer: FileBuffer) : Usable {
 
     // Decode element bytes based on HDF5 type and platform endianness
     private fun decodeElement(bytes: ByteArray, datatype: Hdf5DatatypeInfo): Any {
-        // IMPORTANT: HDF5 specifies datatype endianness. We MUST respect it.
-        val requiresSwap = PlatformCodec.isLittleEndian != datatype.isLittleEndian
+        // Get the codec required by the HDF5 data's specified endianness
+        val codec = PlatformCodecEnhanced.get(datatype.isLittleEndian)
 
         return when (datatype.typeClass) {
             0 -> when (datatype.sizeBytes) { // Fixed-Point
-                 1 -> bytes[0] // Signed byte
-                 2 -> bytes.readShort(0, requiresSwap)
-                 4 -> bytes.readInt(0, requiresSwap)
-                 8 -> bytes.readLong(0, requiresSwap)
+                 1 -> bytes[0] // Byte is endian-neutral
+                 2 -> codec.readShort(bytes)
+                 4 -> codec.readInt(bytes)
+                 8 -> codec.readLong(bytes)
                  else -> "[Int${datatype.sizeBytes}]".also { println("Warn: Int size ${datatype.sizeBytes}") }
             }
             1 -> when (datatype.sizeBytes) { // Floating-Point
-                4 -> Float.fromBits(bytes.readInt(0, requiresSwap))
-                8 -> Double.fromBits(bytes.readLong(0, requiresSwap))
+                4 -> codec.readFloat(bytes) // Use codec's float method
+                8 -> codec.readDouble(bytes) // Use codec's double method
                 else -> "[Float${datatype.sizeBytes}]".also { println("Warn: Float size ${datatype.sizeBytes}") }
             }
             else -> "[TypeClass ${datatype.typeClass}]"
