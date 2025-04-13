@@ -52,8 +52,8 @@ struct file_info {
 #define read_barrier()  __asm__ __volatile__("":::"memory")
 #define write_barrier() __asm__ __volatile__("":::"memory") */
 
-static inline void  read_barrier() { __asm__ __volatile__("" ::: "memory") ;}
-static inline void  write_barrier() { __asm__ __volatile__("" ::: "memory"); }
+static  void  read_barrier() { __asm__ __volatile__("" ::: "memory") ;}
+static  void  write_barrier() { __asm__ __volatile__("" ::: "memory"); }
 
 enum t_setup_ret {
 	T_SETUP_OK	= 0,
@@ -70,7 +70,7 @@ io_uring_smp_store_release(sq->ktail, newtail);
 
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-static inline void io_uring_prep_writevFail(struct io_uring_sqe *sqe, int fd,
+static  void io_uring_prep_writevFail(struct io_uring_sqe *sqe, int fd,
 					const struct iovec *iovecs,
 					unsigned nr_vecs, __u64 offset)
 {

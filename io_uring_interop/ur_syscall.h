@@ -76,22 +76,22 @@ int __sys_io_uring_enter2(int fd, unsigned to_submit, unsigned min_complete,
 int __sys_io_uring_register(int fd, unsigned int opcode, const void *arg,
 			    unsigned int nr_args);
 
-static inline void *ERR_PTR(intptr_t n)
+static  void *ERR_PTR(intptr_t n)
 {
 	return (void *) n;
 }
 
-static inline intptr_t PTR_ERR(const void *ptr)
+static  intptr_t PTR_ERR(const void *ptr)
 {
 	return (intptr_t) ptr;
 }
 
-static inline bool IS_ERR(const void *ptr)
+static  bool IS_ERR(const void *ptr)
 {
 	return uring_unlikely((uintptr_t) ptr >= (uintptr_t) -4095UL);
 }
 
-static inline int ____sys_io_uring_register(int fd, unsigned opcode,
+static  int ____sys_io_uring_register(int fd, unsigned opcode,
 					    const void *arg, unsigned nr_args)
 {
 #ifdef CONFIG_NOLIBC
@@ -103,7 +103,7 @@ static inline int ____sys_io_uring_register(int fd, unsigned opcode,
 #endif
 }
 
-static inline int ____sys_io_uring_setup(unsigned entries,
+static  int ____sys_io_uring_setup(unsigned entries,
 					 struct io_uring_params *p)
 {
 #ifdef CONFIG_NOLIBC
@@ -115,7 +115,7 @@ static inline int ____sys_io_uring_setup(unsigned entries,
 #endif
 }
 
-static inline int ____sys_io_uring_enter2(int fd, unsigned to_submit,
+static  int ____sys_io_uring_enter2(int fd, unsigned to_submit,
 					  unsigned min_complete, unsigned flags,
 					  sigset_t *sig, int sz)
 {
@@ -130,7 +130,7 @@ static inline int ____sys_io_uring_enter2(int fd, unsigned to_submit,
 #endif
 }
 
-static inline int ____sys_io_uring_enter(int fd, unsigned to_submit,
+static  int ____sys_io_uring_enter(int fd, unsigned to_submit,
 					 unsigned min_complete, unsigned flags,
 					 sigset_t *sig)
 {
@@ -138,7 +138,7 @@ static inline int ____sys_io_uring_enter(int fd, unsigned to_submit,
 				       _NSIG / 8);
 }
 
-static inline void *uring_mmap(void *addr, size_t length, int prot, int flags,
+static  void *uring_mmap(void *addr, size_t length, int prot, int flags,
 			       int fd, off_t offset)
 {
 #ifdef CONFIG_NOLIBC
@@ -150,7 +150,7 @@ static inline void *uring_mmap(void *addr, size_t length, int prot, int flags,
 #endif
 }
 
-static inline int uring_munmap(void *addr, size_t length)
+static  int uring_munmap(void *addr, size_t length)
 {
 #ifdef CONFIG_NOLIBC
 	return __arch_impl_munmap(addr, length);
@@ -161,7 +161,7 @@ static inline int uring_munmap(void *addr, size_t length)
 #endif
 }
 
-static inline int uring_madvise(void *addr, size_t length, int advice)
+static  int uring_madvise(void *addr, size_t length, int advice)
 {
 #ifdef CONFIG_NOLIBC
 	return __arch_impl_madvise(addr, length, advice);
@@ -172,7 +172,7 @@ static inline int uring_madvise(void *addr, size_t length, int advice)
 #endif
 }
 
-static inline int uring_getrlimit(int resource, struct rlimit *rlim)
+static  int uring_getrlimit(int resource, struct rlimit *rlim)
 {
 #ifdef CONFIG_NOLIBC
 	return __arch_impl_getrlimit(resource, rlim);
@@ -183,7 +183,7 @@ static inline int uring_getrlimit(int resource, struct rlimit *rlim)
 #endif
 }
 
-static inline int uring_setrlimit(int resource, const struct rlimit *rlim)
+static  int uring_setrlimit(int resource, const struct rlimit *rlim)
 {
 #ifdef CONFIG_NOLIBC
 	return __arch_impl_setrlimit(resource, rlim);
@@ -194,7 +194,7 @@ static inline int uring_setrlimit(int resource, const struct rlimit *rlim)
 #endif
 }
 
-static inline int uring_close(int fd)
+static  int uring_close(int fd)
 {
 #ifdef CONFIG_NOLIBC
 	return __arch_impl_close(fd);

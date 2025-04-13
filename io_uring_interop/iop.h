@@ -9,7 +9,7 @@ struct cqe_parms{
     unsigned int head;
     struct io_uring_cqe *cqe;
  } ;
-static inline int io_uring_do_for_each_cqe(struct cqe_parms  cqep ,int (*vfunc)(struct   cqe_parms))  {
+static  int io_uring_do_for_each_cqe(struct cqe_parms  cqep ,int (*vfunc)(struct   cqe_parms))  {
 
     struct io_uring *ring = cqep.ring;
     struct io_uring_cqe *cqe = cqep.cqe;
@@ -27,7 +27,7 @@ static inline int io_uring_do_for_each_cqe(struct cqe_parms  cqep ,int (*vfunc)(
 };
 
 
-static inline int io_uring_do_for_each_cqe2(struct io_uring*ring,void*data,int(*vfunc2)(struct io_uring*ring,unsigned head,struct io_uring_cqe*cqe,void*data)){
+static  int io_uring_do_for_each_cqe2(struct io_uring*ring,void*data,int(*vfunc2)(struct io_uring*ring,unsigned head,struct io_uring_cqe*cqe,void*data)){
     unsigned int  head=0;
     struct  io_uring_cqe*cqe=NULL;
     int x=0;
