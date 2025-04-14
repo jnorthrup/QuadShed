@@ -10,23 +10,77 @@ actual fun executeCommand(
     environment: Map<String, String>,
     timeoutMillis: Long
 ): CommandResult {
-    val processBuilder = ProcessBuilder(*command.split(" ").toTypedArray())
+    val processBuilder = ProcessBuilder(*splitCommand(command).toTypedArray())
     workingDir?.let { processBuilder.directory(java.io.File(it)) }
-    environment.forEach { (key, value) -> processBuilder.environment()[key] = value }
+    val environmentMap = processBuilder.environment()
+    environmentMap.clear() // Clear existing environment
+    environmentMap.putAll(environment) // Add provided environment
 
     val process = processBuilder.start()
-    process.waitFor(timeoutMillis, TimeUnit.MILLISECONDS)
 
-    val stdout = mutableListOf<String>()
-    val stderr = mutableListOf<String>()
+    val stdoutLines = mutableListOf<String>()
+    val stderrLines = mutableListOf<String>()
 
-    BufferedReader(InputStreamReader(process.inputStream)).useLines { lines ->
-        lines.forEach { stdout.add(it) }
+    val stdoutReader = BufferedReader(InputStreamReader(process.inputStream))
+    val stderrReader = BufferedReader(InputStreamReader(process.errorStream))
+
+    val completed = process.waitFor(timeoutMillis, TimeUnit.MILLISECONDS)
+
+    if (!completed) {
+        process.destroyForcibly() // Ensure process is killed
+        return CommandResult(
+            exitCode = -1, // Indicate timeout
+            stdout = emptyList(),
+            stderr = listOf("Command timed out after ${timeoutMillis}ms")
+        )
     }
-    BufferedReader(InputStreamReader(process.errorStream)).useLines { lines ->
-        lines.forEach { stderr.add(it) }
+
+    stdoutReader.useLines { lines ->
+        lines.forEach { stdoutLines.add(it) }
     }
 
-    val exitCode = process.exitValue() // This will throw if the process is still running
-    return CommandResult(exitCode, stdout, stderr)
+    stderrReader.useLines { lines ->
+        lines.forEach { stderrLines.add(it) }
+    }
+
+    val exitCode = process.exitValue()
+
+    return CommandResult(
+        exitCode = exitCode,
+        stdout = stdoutLines,
+        stderr = stderrLines
+    )
+}
+
+// Helper function to split the command string into a list of arguments
+private fun splitCommand(command: String): List<String> {
+    val parts = mutableListOf<String>()
+    var current = StringBuilder()
+    var inQuotes: Char? = null
+
+    for (char in command) {
+        when {
+            inQuotes == null && (char == '"' || char == '\'') -> {
+                inQuotes = char
+            }
+            inQuotes == char -> {
+                inQuotes = null
+            }
+            inQuotes == null && char.isWhitespace() -> {
+                if (current.isNotEmpty()) {
+                    parts.add(current.toString())
+                    current = StringBuilder()
+                }
+            }
+            else -> {
+                current.append(char)
+            }
+        }
+    }
+
+    if (current.isNotEmpty()) {
+        parts.add(current.toString())
+    }
+
+    return parts
 }
