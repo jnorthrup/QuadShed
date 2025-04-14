@@ -1,12 +1,10 @@
-
-
 import org.jetbrains.kotlin.gradle.DeprecatedTargetPresetApi
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 //which stanza do we add a linux64 cinteropdef for liburing below? (the linux64 stanza is the only one that has a cinterop block)
 
 plugins {
-    kotlin("multiplatform") version "2.0.20"   // Latest version of Kotlin Multiplatform as of now
+    kotlin("multiplatform") version "2.1.20"   // Latest version of Kotlin Multiplatform as of now
 
     `maven-publish`
 }
@@ -32,8 +30,8 @@ publishing {
 
 kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class) compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
         freeCompilerArgs = listOf(
             "-opt-in=kotlin.RequiresOptIn", // Add more opt-in annotations as needed
             "-Xsuppress-version-warnings", // Suppress version warnings
@@ -42,6 +40,8 @@ kotlin {
     }
 
     jvmToolchain(11)
+
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
     jvm {
 
@@ -130,9 +130,9 @@ kotlin {
                     //io_uring
                     val linuxMain by getting {
                         dependsOn(posixMain)
-                        dependencies {
-                            implementation("org.bereft:io_uring:1.0")
-                        }
+//                        dependencies {
+//                            implementation("org.bereft:io_uring:1.0")
+//                        }
                     }
                     val linuxTest by getting {
                         dependsOn(posixTest)
